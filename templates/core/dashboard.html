@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لوحة التحكم - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse py-3">
+            <div class="position-sticky">
+                <div class="text-center mb-4">
+                    {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="الصورة الشخصية" class="avatar avatar-lg mb-2">
+                    {% else %}
+                    <div class="avatar avatar-lg mb-2 bg-primary text-white d-flex align-items-center justify-content-center mx-auto">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    {% endif %}
+                    <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                    <small class="text-muted">{{ user.get_user_type_display }}</small>
+                </div>
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'core:dashboard' %}">
+                            <i class="fas fa-home"></i> الرئيسية
+                        </a>
+                    </li>
+                    {% if user.is_student %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'halaqat:my_halaqat' %}">
+                            <i class="fas fa-users"></i> حلقاتي
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'recitation:my_records' %}">
+                            <i class="fas fa-microphone"></i> سجل التسميع
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'recitation:progress' %}">
+                            <i class="fas fa-chart-line"></i> تقدم الحفظ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'gamification:badges' %}">
+                            <i class="fas fa-medal"></i> الأوسمة
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'gamification:leaderboard' %}">
+                            <i class="fas fa-trophy"></i> المتصدرون
+                        </a>
+                    </li>
+                    {% elif user.is_sheikh %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'halaqat:manage' %}">
+                            <i class="fas fa-users-cog"></i> إدارة الحلقات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'halaqat:sessions' %}">
+                            <i class="fas fa-calendar-alt"></i> الجلسات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'recitation:evaluate' %}">
+                            <i class="fas fa-clipboard-check"></i> التقييم
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'reports:sheikh' %}">
+                            <i class="fas fa-file-alt"></i> التقارير
+                        </a>
+                    </li>
+                    {% elif user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'halaqat:all' %}">
+                            <i class="fas fa-layer-group"></i> جميع الحلقات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-user-graduate"></i> الطلاب
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chalkboard-teacher"></i> المشايخ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'reports:admin' %}">
+                            <i class="fas fa-chart-bar"></i> التقارير
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'quran:index' %}">
+                            <i class="fas fa-book-quran"></i> المصحف
+                        </a>
+                    </li>
+                </ul>
+
+                <hr>
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:profile' %}">
+                            <i class="fas fa-user-edit"></i> الملف الشخصي
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:settings' %}">
+                            <i class="fas fa-cog"></i> الإعدادات
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="fas fa-tachometer-alt text-primary me-2"></i>
+                    مرحباً، {{ user.first_name|default:user.username }}
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleDarkMode()">
+                        <i class="fas fa-moon"></i> الوضع الليلي
+                    </button>
+                </div>
+            </div>
+
+            {% if user.is_student %}
+            <!-- Student Dashboard -->
+            <div class="row g-4 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_memorized_pages|default:0 }}</div>
+                                <div>صفحة محفوظة</div>
+                            </div>
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_sessions|default:0 }}</div>
+                                <div>جلسة تسميع</div>
+                            </div>
+                            <i class="fas fa-microphone-alt"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_points|default:0 }}</div>
+                                <div>نقطة</div>
+                            </div>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ current_streak|default:0 }}</div>
+                                <div>يوم مواظبة</div>
+                            </div>
+                            <i class="fas fa-fire"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Card -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-line me-2"></i> تقدم الحفظ
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>نسبة الإتمام</span>
+                                    <span>{{ memorization_percentage|default:0 }}%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: {{ memorization_percentage|default:0 }}%"></div>
+                                </div>
+                            </div>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-bookmark text-primary me-1"></i>
+                                الموقع الحالي: سورة {{ current_surah|default:"الفاتحة" }} - الآية {{ current_ayah|default:1 }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-calendar-day me-2"></i> جلسة اليوم
+                        </div>
+                        <div class="card-body text-center">
+                            {% if today_session %}
+                            <h5 class="text-primary">{{ today_session.halaqa.name }}</h5>
+                            <p class="mb-2">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ today_session.start_time|time:"H:i" }}
+                            </p>
+                            <a href="{{ today_session.meet_link }}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-video me-1"></i> دخول الجلسة
+                            </a>
+                            {% else %}
+                            <p class="text-muted mb-0">لا توجد جلسات اليوم</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% elif user.is_sheikh %}
+            <!-- Sheikh Dashboard -->
+            <div class="row g-4 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_students|default:0 }}</div>
+                                <div>طالب</div>
+                            </div>
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_halaqat|default:0 }}</div>
+                                <div>حلقة</div>
+                            </div>
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ sessions_this_week|default:0 }}</div>
+                                <div>جلسة هذا الأسبوع</div>
+                            </div>
+                            <i class="fas fa-calendar-week"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ average_rating|default:"0.0" }}</div>
+                                <div>التقييم</div>
+                            </div>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% elif user.is_admin %}
+            <!-- Admin Dashboard -->
+            <div class="row g-4 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_students|default:0 }}</div>
+                                <div>إجمالي الطلاب</div>
+                            </div>
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_sheikhs|default:0 }}</div>
+                                <div>إجمالي المشايخ</div>
+                            </div>
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ total_halaqat|default:0 }}</div>
+                                <div>إجمالي الحلقات</div>
+                            </div>
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="stat-value">{{ sessions_today|default:0 }}</div>
+                                <div>جلسات اليوم</div>
+                            </div>
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Activity -->
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-history me-2"></i> آخر النشاطات</span>
+                            <a href="#" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>النشاط</th>
+                                            <th>التفاصيل</th>
+                                            <th>التاريخ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for activity in recent_activities %}
+                                        <tr>
+                                            <td>{{ activity.action }}</td>
+                                            <td>{{ activity.details }}</td>
+                                            <td>{{ activity.created_at|timesince }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-4">
+                                                لا توجد نشاطات حديثة
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-bell me-2"></i> الإشعارات
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% for notification in notifications %}
+                                <li class="list-group-item d-flex align-items-start {% if not notification.is_read %}bg-light{% endif %}">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">{{ notification.title }}</div>
+                                        <small class="text-muted">{{ notification.created_at|timesince }}</small>
+                                    </div>
+                                </li>
+                                {% empty %}
+                                <li class="list-group-item text-center text-muted py-4">
+                                    لا توجد إشعارات جديدة
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

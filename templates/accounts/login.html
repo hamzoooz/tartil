@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل الدخول - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-center py-4">
+                    <i class="fas fa-quran fa-2x mb-2"></i>
+                    <h4 class="mb-0">تسجيل الدخول</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            اسم المستخدم أو كلمة المرور غير صحيحة
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">اسم المستخدم</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" name="username" class="form-control"
+                                       placeholder="أدخل اسم المستخدم" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">كلمة المرور</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" name="password" class="form-control"
+                                       placeholder="أدخل كلمة المرور" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">تذكرني</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i> دخول
+                        </button>
+
+                        <div class="text-center">
+                            <a href="#" class="text-decoration-none">نسيت كلمة المرور؟</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <span class="text-muted">ليس لديك حساب؟</span>
+                    <a href="{% url 'accounts:register' %}" class="text-decoration-none">إنشاء حساب جديد</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

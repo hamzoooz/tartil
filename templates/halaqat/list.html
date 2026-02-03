@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}الحلقات - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-users text-primary me-2"></i> الحلقات المتاحة
+        </h2>
+        {% if user.is_sheikh or user.is_admin %}
+        <a href="{% url 'halaqat:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i> إنشاء حلقة جديدة
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- فلاتر البحث -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="ابحث عن حلقة..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="course" class="form-select">
+                        <option value="">جميع المسارات</option>
+                        {% for course in courses %}
+                        <option value="{{ course.id }}">{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">جميع الحالات</option>
+                        <option value="active">نشطة</option>
+                        <option value="paused">متوقفة</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-search"></i> بحث
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- قائمة الحلقات -->
+    <div class="row g-4">
+        {% for halaqa in halaqat %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>{{ halaqa.name }}</span>
+                    {% if halaqa.status == 'active' %}
+                    <span class="badge bg-success">نشطة</span>
+                    {% else %}
+                    <span class="badge bg-secondary">متوقفة</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-user-tie me-2"></i>
+                        الشيخ {{ halaqa.sheikh.get_full_name }}
+                    </p>
+                    {% if halaqa.course %}
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-book me-2"></i>
+                        {{ halaqa.course.name }}
+                    </p>
+                    {% endif %}
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-users me-2"></i>
+                        {{ halaqa.enrolled_count }} / {{ halaqa.max_students }} طالب
+                    </p>
+                    {% if halaqa.schedule_time %}
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-clock me-2"></i>
+                        {{ halaqa.schedule_time|time:"H:i" }}
+                    </p>
+                    {% endif %}
+
+                    <div class="progress mb-3" style="height: 8px;">
+                        <div class="progress-bar" style="width: {% widthratio halaqa.enrolled_count halaqa.max_students 100 %}%"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'halaqat:detail' halaqa.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i> التفاصيل
+                        </a>
+                        {% if not halaqa.is_full and user.is_student %}
+                        <a href="{% url 'halaqat:enroll' halaqa.id %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-user-plus me-1"></i> انضمام
+                        </a>
+                        {% elif halaqa.is_full %}
+                        <span class="btn btn-secondary btn-sm disabled">مكتملة</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-users fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">لا توجد حلقات متاحة حالياً</h4>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- الترقيم -->
+    {% if halaqat.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if halaqat.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ halaqat.previous_page_number }}">السابق</a>
+            </li>
+            {% endif %}
+            {% for num in halaqat.paginator.page_range %}
+            <li class="page-item {% if halaqat.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if halaqat.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ halaqat.next_page_number }}">التالي</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}تواصل معنا - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="fw-bold">
+                    <i class="fas fa-envelope text-primary me-2"></i>
+                    تواصل معنا
+                </h1>
+                <p class="lead text-muted">نسعد بتواصلكم واستفساراتكم</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-phone fa-lg text-primary"></i>
+                            </div>
+                            <h6>الهاتف</h6>
+                            <p class="text-muted mb-0" dir="ltr">+966 XX XXX XXXX</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-envelope fa-lg text-success"></i>
+                            </div>
+                            <h6>البريد الإلكتروني</h6>
+                            <p class="text-muted mb-0">info@tartil.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-map-marker-alt fa-lg text-info"></i>
+                            </div>
+                            <h6>الموقع</h6>
+                            <p class="text-muted mb-0">المملكة العربية السعودية</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-5">
+                <div class="card-header">
+                    <i class="fas fa-paper-plane me-2"></i> أرسل رسالة
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">الاسم الكامل</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">البريد الإلكتروني</label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">الموضوع</label>
+                                <input type="text" class="form-control" name="subject" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">الرسالة</label>
+                                <textarea class="form-control" name="message" rows="5" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i> إرسال الرسالة
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

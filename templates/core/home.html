@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ترتيل - منصة إدارة الحلقات القرآنية{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); min-height: 80vh; display: flex; align-items: center;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-white mb-5 mb-lg-0">
+                <h1 class="display-4 fw-bold mb-4 fade-in">
+                    <i class="fas fa-quran me-3" style="color: var(--accent-color);"></i>
+                    منصة ترتيل
+                </h1>
+                <p class="lead mb-4 fade-in" style="animation-delay: 0.2s;">
+                    منصة تقنية متكاملة لإدارة الحلقات القرآنية عن بعد، تربط الطالب والشيخ والإدارة في بيئة افتراضية تفاعلية
+                </p>
+                <div class="d-flex gap-3 fade-in" style="animation-delay: 0.4s;">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-gold btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i> لوحة التحكم
+                    </a>
+                    {% else %}
+                    <a href="{% url 'accounts:register' %}" class="btn btn-gold btn-lg">
+                        <i class="fas fa-user-plus me-2"></i> ابدأ الآن
+                    </a>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i> تسجيل الدخول
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 text-center fade-in" style="animation-delay: 0.3s;">
+                <div class="position-relative">
+                    <i class="fas fa-mosque" style="font-size: 15rem; color: rgba(255,255,255,0.1);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3 col-6">
+                <div class="stat-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="fas fa-users mb-3"></i>
+                    <div class="stat-value">1,500+</div>
+                    <div>طالب وطالبة</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                    <i class="fas fa-user-tie mb-3"></i>
+                    <div class="stat-value">50+</div>
+                    <div>شيخ ومعلم</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                    <i class="fas fa-book-open mb-3"></i>
+                    <div class="stat-value">10,000+</div>
+                    <div>جلسة تسميع</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                    <i class="fas fa-star mb-3"></i>
+                    <div class="stat-value">4.9</div>
+                    <div>تقييم المنصة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">
+                <i class="fas fa-star text-warning me-2"></i>
+                مميزات المنصة
+            </h2>
+            <p class="text-muted">اكتشف الميزات الاحترافية التي تجعل ترتيل منصة فريدة</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-video fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">المقرأة الافتراضية</h5>
+                        <p class="card-text text-muted">
+                            تكامل مع Google Meet للتسميع المباشر مع إمكانية تضمين الاجتماع داخل المنصة
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-book-quran fa-2x text-success"></i>
+                        </div>
+                        <h5 class="card-title">المصحف التفاعلي</h5>
+                        <p class="card-text text-muted">
+                            عرض المصحف مع إمكانية تحديد الأخطاء مباشرة وتظهر للطالب فوراً
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-chart-line fa-2x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">تقارير وإحصائيات</h5>
+                        <p class="card-text text-muted">
+                            لوحات تحليلية شاملة لمتابعة التقدم والأداء بشكل دقيق
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-gamepad fa-2x text-info"></i>
+                        </div>
+                        <h5 class="card-title">نظام التلعيب</h5>
+                        <p class="card-text text-muted">
+                            أوسمة ونقاط ولوحة متصدرين لتحفيز الطلاب على المواظبة
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-bell fa-2x text-danger"></i>
+                        </div>
+                        <h5 class="card-title">الإشعارات الذكية</h5>
+                        <p class="card-text text-muted">
+                            تنبيهات بمواعيد الحلقات والتذكير بالمراجعة اليومية
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-secondary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-mobile-alt fa-2x text-secondary"></i>
+                        </div>
+                        <h5 class="card-title">متوافق مع الجوال</h5>
+                        <p class="card-text text-muted">
+                            تصميم متجاوب يعمل على جميع الأجهزة بكفاءة عالية
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- User Types Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">
+                <i class="fas fa-users text-primary me-2"></i>
+                لمن هذه المنصة؟
+            </h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header text-center py-4">
+                        <i class="fas fa-user-graduate fa-3x mb-2"></i>
+                        <h4 class="mb-0">الطالب</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> لوحة تحكم شخصية</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> جدول التسميع والمراجعة</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> متابعة التقدم والإنجازات</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> المصحف التفاعلي</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> الأوسمة والنقاط</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header text-center py-4">
+                        <i class="fas fa-chalkboard-teacher fa-3x mb-2"></i>
+                        <h4 class="mb-0">الشيخ / المعلم</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> إدارة الحلقات والطلاب</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> المصحف المعلم الذكي</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> تسجيل الأخطاء والتقييم</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> تقارير الجلسات</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> إحصائيات الأداء</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header text-center py-4">
+                        <i class="fas fa-user-shield fa-3x mb-2"></i>
+                        <h4 class="mb-0">الإدارة</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> توزيع الطلاب ذكياً</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> مراقبة الحلقات</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> لوحات بيانات شاملة</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> إدارة الاشتراكات</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> تقارير الأداء العام</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, var(--dark-color), #2d3a4f);">
+    <div class="container text-center text-white">
+        <h2 class="fw-bold mb-4">ابدأ رحلتك مع القرآن الكريم اليوم</h2>
+        <p class="lead mb-4">انضم إلى آلاف الطلاب الذين يحفظون القرآن عبر منصة ترتيل</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-gold btn-lg">
+            <i class="fas fa-rocket me-2"></i> سجل الآن مجاناً
+        </a>
+    </div>
+</section>
+{% endblock %}

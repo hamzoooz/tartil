@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}المصحف الشريف - ترتيل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .surah-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .surah-card:hover {
+        transform: scale(1.02);
+    }
+    .surah-number {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .meccan {
+        border-right: 4px solid #28a745;
+    }
+    .medinan {
+        border-right: 4px solid #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">
+            <i class="fas fa-book-quran text-primary me-2"></i>
+            المصحف الشريف
+        </h1>
+        <p class="text-muted">اختر السورة للبدء في القراءة</p>
+    </div>
+
+    <!-- البحث والفلاتر -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="searchSurah" class="form-control"
+                               placeholder="ابحث عن سورة...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="filterType" class="form-select">
+                        <option value="">جميع السور</option>
+                        <option value="meccan">مكية</option>
+                        <option value="medinan">مدنية</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="filterJuz" class="form-select">
+                        <option value="">جميع الأجزاء</option>
+                        {% for i in "123456789012345678901234567890" %}
+                        {% if forloop.counter <= 30 %}
+                        <option value="{{ forloop.counter }}">الجزء {{ forloop.counter }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- دليل الألوان -->
+    <div class="d-flex justify-content-center gap-4 mb-4">
+        <span><i class="fas fa-square text-success me-1"></i> مكية</span>
+        <span><i class="fas fa-square text-primary me-1"></i> مدنية</span>
+    </div>
+
+    <!-- قائمة السور -->
+    <div class="row g-3" id="surahList">
+        {% for surah in surahs %}
+        <div class="col-lg-3 col-md-4 col-6 surah-item"
+             data-name="{{ surah.name_arabic }}"
+             data-type="{{ surah.revelation_type }}"
+             data-juz="{{ surah.juz_start }}">
+            <a href="{% url 'quran:surah' surah.number %}" class="text-decoration-none">
+                <div class="card surah-card h-100 {{ surah.revelation_type }}">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="surah-number me-3">{{ surah.number }}</div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 text-dark">{{ surah.name_arabic }}</h6>
+                            <small class="text-muted">{{ surah.total_ayat }} آية</small>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-book-quran fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">لم يتم تحميل بيانات القرآن بعد</h4>
+            <p class="text-muted">قم بتشغيل الأمر: python manage.py load_quran</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // البحث والفلترة
+    const searchInput = document.getElementById('searchSurah');
+    const filterType = document.getElementById('filterType');
+    const filterJuz = document.getElementById('filterJuz');
+    const surahItems = document.querySelectorAll('.surah-item');
+
+    function filterSurahs() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const typeFilter = filterType.value;
+        const juzFilter = filterJuz.value;
+
+        surahItems.forEach(item => {
+            const name = item.dataset.name.toLowerCase();
+            const type = item.dataset.type;
+            const juz = item.dataset.juz;
+
+            const matchesSearch = name.includes(searchTerm);
+            const matchesType = !typeFilter || type === typeFilter;
+            const matchesJuz = !juzFilter || juz === juzFilter;
+
+            item.style.display = matchesSearch && matchesType && matchesJuz ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterSurahs);
+    filterType.addEventListener('change', filterSurahs);
+    filterJuz.addEventListener('change', filterSurahs);
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}إنشاء حساب - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-center py-4">
+                    <i class="fas fa-quran fa-2x mb-2"></i>
+                    <h4 class="mb-0">إنشاء حساب جديد</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0 list-unstyled">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                <li><i class="fas fa-exclamation-circle me-2"></i>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                            <li><i class="fas fa-exclamation-circle me-2"></i>{{ error }}</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">الاسم الأول</label>
+                                <input type="text" name="first_name" class="form-control"
+                                       value="{{ form.first_name.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الاسم الأخير</label>
+                                <input type="text" name="last_name" class="form-control"
+                                       value="{{ form.last_name.value|default:'' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">اسم المستخدم</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" name="username" class="form-control"
+                                       value="{{ form.username.value|default:'' }}"
+                                       placeholder="اختر اسم مستخدم" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" name="email" class="form-control"
+                                       value="{{ form.email.value|default:'' }}"
+                                       placeholder="example@email.com" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">رقم الجوال</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="tel" name="phone" class="form-control"
+                                       value="{{ form.phone.value|default:'' }}"
+                                       placeholder="05XXXXXXXX">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">نوع الحساب</label>
+                            <select name="user_type" class="form-select" required>
+                                <option value="student">طالب</option>
+                                <option value="sheikh">شيخ / معلم</option>
+                                <option value="parent">ولي أمر</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">الجنس</label>
+                            <select name="gender" class="form-select">
+                                <option value="">-- اختر --</option>
+                                <option value="male">ذكر</option>
+                                <option value="female">أنثى</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">كلمة المرور</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" name="password1" class="form-control"
+                                       placeholder="أدخل كلمة المرور" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">تأكيد كلمة المرور</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" name="password2" class="form-control"
+                                       placeholder="أعد إدخال كلمة المرور" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                أوافق على <a href="#">شروط الاستخدام</a> و<a href="#">سياسة الخصوصية</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-2"></i> إنشاء الحساب
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <span class="text-muted">لديك حساب بالفعل؟</span>
+                    <a href="{% url 'accounts:login' %}" class="text-decoration-none">تسجيل الدخول</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

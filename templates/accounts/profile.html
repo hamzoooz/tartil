@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}الملف الشخصي - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body p-4">
+                    {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="الصورة الشخصية"
+                         class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="width: 120px; height: 120px;">
+                        <i class="fas fa-user fa-3x"></i>
+                    </div>
+                    {% endif %}
+                    <h4>{{ user.get_full_name }}</h4>
+                    <p class="text-muted mb-2">{{ user.get_user_type_display }}</p>
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle me-1"></i> حساب مفعل
+                    </span>
+
+                    {% if user.is_student and user.student_profile %}
+                    <hr>
+                    <div class="row text-center g-3">
+                        <div class="col-4">
+                            <h5 class="mb-0 text-primary">{{ user.student_profile.total_memorized_pages }}</h5>
+                            <small class="text-muted">صفحة</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="mb-0 text-success">{{ user.student_profile.total_points }}</h5>
+                            <small class="text-muted">نقطة</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="mb-0 text-warning">{{ user.badges.count }}</h5>
+                            <small class="text-muted">وسام</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user.is_student and user.student_profile %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i> تقدم الحفظ
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <h2 class="text-primary mb-0">{{ user.student_profile.memorization_percentage }}%</h2>
+                        <small class="text-muted">من المصحف الشريف</small>
+                    </div>
+                    <div class="progress mb-3" style="height: 15px;">
+                        <div class="progress-bar" style="width: {{ user.student_profile.memorization_percentage }}%"></div>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-bookmark me-1"></i>
+                        الموقع الحالي: سورة {{ current_surah|default:"الفاتحة" }}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-edit me-2"></i> تعديل الملف الشخصي
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">الاسم الأول</label>
+                                <input type="text" name="first_name" class="form-control"
+                                       value="{{ user.first_name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الاسم الأخير</label>
+                                <input type="text" name="last_name" class="form-control"
+                                       value="{{ user.last_name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">البريد الإلكتروني</label>
+                                <input type="email" name="email" class="form-control"
+                                       value="{{ user.email }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">رقم الجوال</label>
+                                <input type="tel" name="phone" class="form-control"
+                                       value="{{ user.phone }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الدولة</label>
+                                <input type="text" name="country" class="form-control"
+                                       value="{{ user.country }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">المدينة</label>
+                                <input type="text" name="city" class="form-control"
+                                       value="{{ user.city }}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">نبذة شخصية</label>
+                                <textarea name="bio" class="form-control" rows="3">{{ user.bio }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">الصورة الشخصية</label>
+                                <input type="file" name="profile_image" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> حفظ التغييرات
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if user.is_student %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-medal me-2"></i> الأوسمة المكتسبة
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for student_badge in user.badges.all %}
+                        <div class="col-md-4 col-6 text-center">
+                            <div class="p-3 border rounded">
+                                <i class="{{ student_badge.badge.icon }} fa-2x text-warning mb-2"></i>
+                                <h6 class="mb-1">{{ student_badge.badge.name }}</h6>
+                                <small class="text-muted">{{ student_badge.earned_date|date:"Y/m/d" }}</small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center text-muted py-4">
+                            <i class="fas fa-medal fa-3x mb-3 opacity-25"></i>
+                            <p>لم تحصل على أي وسام بعد</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

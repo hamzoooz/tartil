@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}الإعدادات - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="mb-4">
+                <i class="fas fa-cog text-primary me-2"></i> الإعدادات
+            </h2>
+
+            <!-- تغيير كلمة المرور -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-lock me-2"></i> تغيير كلمة المرور
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" action="{% url 'accounts:change_password' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">كلمة المرور الحالية</label>
+                                <input type="password" name="old_password" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">كلمة المرور الجديدة</label>
+                                <input type="password" name="new_password1" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">تأكيد كلمة المرور</label>
+                                <input type="password" name="new_password2" class="form-control" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-key me-2"></i> تغيير كلمة المرور
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- إعدادات الإشعارات -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-bell me-2"></i> إعدادات الإشعارات
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="email_notifications" checked>
+                            <label class="form-check-label" for="email_notifications">
+                                إشعارات البريد الإلكتروني
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="session_reminders" checked>
+                            <label class="form-check-label" for="session_reminders">
+                                تذكير بمواعيد الجلسات
+                            </label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="grade_notifications" checked>
+                            <label class="form-check-label" for="grade_notifications">
+                                إشعارات الدرجات والتقييم
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="badge_notifications" checked>
+                            <label class="form-check-label" for="badge_notifications">
+                                إشعارات الأوسمة والإنجازات
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-save me-2"></i> حفظ الإعدادات
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- إعدادات الواجهة -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-palette me-2"></i> إعدادات الواجهة
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">نمط الواجهة</label>
+                            <select class="form-select" id="theme_mode">
+                                <option value="light">الوضع النهاري</option>
+                                <option value="dark">الوضع الليلي</option>
+                                <option value="auto">تلقائي</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">حجم الخط</label>
+                            <select class="form-select">
+                                <option value="small">صغير</option>
+                                <option value="normal" selected>عادي</option>
+                                <option value="large">كبير</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- حذف الحساب -->
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-2"></i> منطقة الخطر
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted">
+                        حذف الحساب سيؤدي إلى فقدان جميع البيانات نهائياً ولا يمكن استرجاعها.
+                    </p>
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash-alt me-2"></i> حذف الحساب
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal حذف الحساب -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">تأكيد حذف الحساب</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من رغبتك في حذف حسابك نهائياً؟</p>
+                <p class="text-danger"><strong>هذا الإجراء لا يمكن التراجع عنه!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger">حذف الحساب</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
