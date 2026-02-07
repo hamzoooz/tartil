@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+
+{% block title %}تقرير {{ report.student.get_full_name }} - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-chart-bar text-primary me-2"></i>تقرير الطالب</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'reports:report_list' %}">تقارير الطلاب</a></li>
+                    <li class="breadcrumb-item active">{{ report.student.get_full_name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-md-start">
+            <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-2"></i>العودة
+            </a>
+            {% if user.is_admin or user.is_sheikh %}
+            <a href="{% url 'reports:report_delete' report.pk %}" class="btn btn-outline-danger">
+                <i class="fas fa-trash me-2"></i>حذف
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Report Header -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3>{{ report.student.get_full_name }}</h3>
+                    <p class="text-muted mb-2">{{ report.get_report_period_display }} - من {{ report.start_date|date:"Y-m-d" }} إلى {{ report.end_date|date:"Y-m-d" }}</p>
+                    <span class="badge 
+                        {% if report.average_grade >= 90 %}bg-success
+                        {% elif report.average_grade >= 70 %}bg-primary
+                        {% elif report.average_grade >= 60 %}bg-warning
+                        {% else %}bg-danger{% endif %} fs-6">
+                        المتوسط: {{ report.average_grade }}%
+                    </span>
+                </div>
+                <div class="col-md-4 text-md-start">
+                    {% if report.student.profile_image %}
+                    <img src="{{ report.student.profile_image.url }}" class="avatar-lg" alt="">
+                    {% else %}
+                    <div class="avatar-lg bg-primary d-inline-flex align-items-center justify-content-center text-white fs-1">
+                        {{ report.student.first_name|first }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ report.total_sessions }}</div>
+                        <small>الحصص</small>
+                    </div>
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ report.total_recitations }}</div>
+                        <small>التسميعات</small>
+                    </div>
+                    <i class="fas fa-microphone"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ report.total_pages_memorized }}</div>
+                        <small>صفحات محفوظة</small>
+                    </div>
+                    <i class="fas fa-book"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card bg-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ report.attendance_rate }}%</div>
+                        <small>نسبة الحضور</small>
+                    </div>
+                    <i class="fas fa-user-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Progress & Review Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i>تفاصيل التقدم
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>الصفحات المحفوظة</h6>
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ report.student.student_profile.memorization_percentage }}%">
+                                    {{ report.student.student_profile.total_memorized_pages }}
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ report.student.student_profile.memorization_percentage }}% من المصحف</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>المراجعة</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>صفحات مراجعة:</td>
+                                    <td class="fw-bold">{{ report.total_pages_reviewed }}</td>
+                                </tr>
+                                <tr>
+                                    <td>حفظ جديد:</td>
+                                    <td class="fw-bold">{{ report.total_pages_memorized }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Errors Analysis -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle me-2"></i>تحليل الأخطاء
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="display-4 text-danger">{{ report.total_errors }}</div>
+                            <small class="text-muted">إجمالي الأخطاء</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="display-4 text-warning">{{ report.tajweed_errors }}</div>
+                            <small class="text-muted">أخطاء التجويد</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="display-4 text-info">{{ report.memorization_errors }}</div>
+                            <small class="text-muted">أخطاء الحفظ</small>
+                        </div>
+                    </div>
+                    {% if report.total_errors > 0 %}
+                    <hr>
+                    <canvas id="errorsChart" height="100"></canvas>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Detailed Data -->
+            {% if detailed_data.recitation_details %}
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-list me-2"></i>تفاصيل التسميعات
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>السورة</th>
+                                    <th>الدرجة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rec in detailed_data.recitation_details|slice:":10" %}
+                                <tr>
+                                    <td>{{ rec.created_at|date:"Y-m-d" }}</td>
+                                    <td>{{ rec.surah_start__name_arabic }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if rec.grade >= 90 %}bg-success
+                                            {% elif rec.grade >= 70 %}bg-primary
+                                            {% elif rec.grade >= 60 %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ rec.grade }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- General Evaluation -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-comment me-2"></i>التقييم العام
+                </div>
+                <div class="card-body">
+                    {% if report.general_evaluation %}
+                    <p>{{ report.general_evaluation|linebreaks }}</p>
+                    {% else %}
+                    <p class="text-muted">لا يوجد تقييم</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-lightbulb me-2"></i>التوصيات
+                </div>
+                <div class="card-body">
+                    {% if report.recommendations %}
+                    <p>{{ report.recommendations|linebreaks }}</p>
+                    {% else %}
+                    <p class="text-muted">لا توجد توصيات</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Certificates -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-certificate me-2"></i>الشهادات
+                </div>
+                <div class="card-body">
+                    {% with certs=report.student.certificates.all|slice:":5" %}
+                    {% if certs %}
+                    <ul class="list-group list-group-flush">
+                        {% for cert in certs %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'reports:certificate_view' cert.pk %}">{{ cert.degree_title|truncatewords:4 }}</a>
+                            <span class="badge bg-primary">{{ cert.issue_date|date:"Y-m" }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">لا توجد شهادات</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    {% if report.total_errors > 0 %}
+    // رسم بياني للأخطاء
+    const ctx = document.getElementById('errorsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['أخطاء التجويد', 'أخطاء الحفظ', 'أخطاء أخرى'],
+            datasets: [{
+                data: [
+                    {{ report.tajweed_errors }},
+                    {{ report.memorization_errors }},
+                    {{ report.total_errors }} - {{ report.tajweed_errors }} - {{ report.memorization_errors }}
+                ],
+                backgroundColor: ['#ffc107', '#17a2b8', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

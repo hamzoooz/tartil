@@ -13,7 +13,10 @@ admin.site.site_title = 'ترتيل'
 admin.site.index_title = 'لوحة التحكم'
 
 urlpatterns = [
-    # لوحة الإدارة
+    # لوحة الإدارة المتقدمة (الجديدة)
+    path('dashboard/', include('dashboard.urls', namespace='dashboard')),
+    
+    # لوحة الإدارة الافتراضية
     path('admin/', admin.site.urls),
 
     # التطبيقات
@@ -24,6 +27,7 @@ urlpatterns = [
     path('recitation/', include('recitation.urls', namespace='recitation')),
     path('gamification/', include('gamification.urls', namespace='gamification')),
     path('reports/', include('reports.urls', namespace='reports')),
+    path('courses/', include('courses.urls', namespace='courses')),
 ]
 
 # خدمة ملفات الوسائط في وضع التطوير

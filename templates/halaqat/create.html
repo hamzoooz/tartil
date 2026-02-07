@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}إنشاء حلقة جديدة - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i> إنشاء حلقة جديدة
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">اسم الحلقة *</label>
+                            <input type="text" class="form-control" id="name" name="name" required 
+                                   placeholder="مثال: حلقة حفظ الفاتحة والبقرة">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="course" class="form-label">المسار</label>
+                            <select class="form-select" id="course" name="course">
+                                <option value="">بدون مسار</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">الوصف</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="وصف مختصر للحلقة..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="max_students" class="form-label">الحد الأقصى للطلاب</label>
+                                <input type="number" class="form-control" id="max_students" name="max_students" 
+                                       value="10" min="1" max="50">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="duration_minutes" class="form-label">مدة الجلسة (دقيقة)</label>
+                                <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" 
+                                       value="30" min="15" max="180">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">أيام الحلقة</label>
+                            <div class="row">
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="sat" id="day_sat" name="schedule_days[]">
+                                        <label class="form-check-label" for="day_sat">السبت</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="sun" id="day_sun" name="schedule_days[]">
+                                        <label class="form-check-label" for="day_sun">الأحد</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="mon" id="day_mon" name="schedule_days[]">
+                                        <label class="form-check-label" for="day_mon">الإثنين</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="tue" id="day_tue" name="schedule_days[]">
+                                        <label class="form-check-label" for="day_tue">الثلاثاء</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="wed" id="day_wed" name="schedule_days[]">
+                                        <label class="form-check-label" for="day_wed">الأربعاء</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="thu" id="day_thu" name="schedule_days[]">
+                                        <label class="form-check-label" for="day_thu">الخميس</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="fri" id="day_fri" name="schedule_days[]">
+                                        <label class="form-check-label" for="day_fri">الجمعة</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meet_link" class="form-label">رابط Google Meet</label>
+                            <input type="url" class="form-control" id="meet_link" name="meet_link" 
+                                   placeholder="https://meet.google.com/xxx-xxxx-xxx">
+                            <div class="form-text">اختياري - يمكن إضافته لاحقاً</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'halaqat:list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-right me-2"></i> إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> إنشاء الحلقة
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

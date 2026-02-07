@@ -1,0 +1,312 @@
+{% extends 'dashboard/base.html' %}
+{% load humanize %}
+
+{% block title %}سجل الحضور{% endblock %}
+{% block page_title %}سجل الحضور{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="stat-value text-primary" style="font-size: 1.5rem;">{{ stats.total|intcomma }}</div>
+            <div class="stat-label">إجمالي السجلات</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="stat-value text-success" style="font-size: 1.5rem;">{{ stats.present|intcomma }}</div>
+            <div class="stat-label">حاضر</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="stat-value text-danger" style="font-size: 1.5rem;">{{ stats.absent|intcomma }}</div>
+            <div class="stat-label">غائب</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="stat-value text-warning" style="font-size: 1.5rem;">{{ stats.late|intcomma }}</div>
+            <div class="stat-label">متأخر</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="stat-value text-secondary" style="font-size: 1.5rem;">{{ stats.excused|intcomma }}</div>
+            <div class="stat-label">معذور</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="stat-value text-info" style="font-size: 1.5rem;">{{ stats.attendance_rate }}%</div>
+            <div class="stat-label">نسبة الحضور</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small text-muted">الحالة</label>
+            <select name="status" class="form-select form-control-dashboard">
+                <option value="">الكل</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-3">
+            <label class="form-label small text-muted">الطالب</label>
+            <select name="student" class="form-select form-control-dashboard">
+                <option value="">الكل</option>
+                {% for student in students %}
+                <option value="{{ student.id }}" {% if current_filters.student == student.id|stringformat:"s" %}selected{% endif %}>
+                    {{ student.get_full_name|default:student.username }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-3">
+            <label class="form-label small text-muted">الحلقة</label>
+            <select name="halaqa" class="form-select form-control-dashboard">
+                <option value="">الكل</option>
+                {% for halaqa in halaqat %}
+                <option value="{{ halaqa.id }}" {% if current_filters.halaqa == halaqa.id|stringformat:"s" %}selected{% endif %}>
+                    {{ halaqa.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-dashboard btn-dashboard-primary w-100">
+                <i class="fas fa-filter"></i> تصفية
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Date Filter Row -->
+<div class="filter-bar mt-2">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small text-muted">من تاريخ</label>
+            <input type="date" name="date_from" class="form-control form-control-dashboard" value="{{ current_filters.date_from }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-muted">إلى تاريخ</label>
+            <input type="date" name="date_to" class="form-control form-control-dashboard" value="{{ current_filters.date_to }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-dashboard btn-dashboard-light w-100">
+                <i class="fas fa-calendar"></i> تصفية
+            </button>
+        </div>
+        <div class="col-md-2">
+            <a href="?" class="btn btn-dashboard btn-dashboard-light w-100">
+                <i class="fas fa-undo"></i> إعادة
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Action Bar -->
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+    <div class="d-flex gap-2">
+        <a href="/admin/halaqat/attendance/add/" class="btn btn-dashboard btn-dashboard-primary" target="_blank">
+            <i class="fas fa-plus"></i> تسجيل حضور
+        </a>
+        <button class="btn btn-dashboard btn-dashboard-light bulk-action-btn" disabled onclick="bulkAction('present')">
+            <i class="fas fa-check"></i> تحديد حاضر
+        </button>
+        <button class="btn btn-dashboard btn-dashboard-light bulk-action-btn" disabled onclick="bulkAction('absent')">
+            <i class="fas fa-times"></i> تحديد غائب
+        </button>
+    </div>
+    
+    <div class="d-flex gap-2">
+        <button class="btn btn-dashboard btn-dashboard-light" onclick="exportTableToCSV('attendanceTable', 'attendance.csv')">
+            <i class="fas fa-download"></i> تصدير
+        </button>
+    </div>
+</div>
+
+<!-- Attendance Chart -->
+<div class="dashboard-card mb-4">
+    <div class="card-header">
+        <h5 class="card-title">
+            <i class="fas fa-chart-area text-primary me-2"></i>
+            رسم بياني للحضور
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Table -->
+<div class="dashboard-card" id="attendanceTableContainer">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="dashboard-table mb-0" id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th width="40">
+                            <div class="form-check">
+                                <input class="form-check-input select-all" type="checkbox">
+                            </div>
+                        </th>
+                        <th>الطالب</th>
+                        <th>الحلقة</th>
+                        <th>تاريخ الجلسة</th>
+                        <th>الحالة</th>
+                        <th>وقت الدخول</th>
+                        <th>ملاحظات</th>
+                        <th width="100">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in attendances %}
+                    <tr>
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input row-checkbox" type="checkbox" value="{{ att.id }}">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" 
+                                     style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                    {{ att.student.first_name|first }}
+                                </div>
+                                <span class="fw-semibold">{{ att.student.get_full_name|default:att.student.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ att.session.halaqa.name }}</td>
+                        <td>{{ att.session.date }}<br><small class="text-muted">{{ att.session.start_time }}</small></td>
+                        <td>
+                            <span class="badge badge-soft-{% if att.status == 'present' %}success{% elif att.status == 'absent' %}danger{% elif att.status == 'late' %}warning{% else %}secondary{% endif %}">
+                                {{ att.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if att.check_in_time %}
+                                {{ att.check_in_time|time:"H:i" }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ att.notes|default:"-"|truncatechars:30 }}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="/admin/halaqat/attendance/{{ att.id }}/change/" target="_blank" class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fas fa-clipboard-list fa-3x mb-3 opacity-25"></i>
+                            <p>لا توجد سجلات حضور مطابقة للبحث</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation">
+    <ul class="pagination-dashboard">
+        {% if page_obj.has_previous %}
+        <li><a href="?page=1{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-right"></i></a></li>
+        <li><a href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-right"></i></a></li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="active"><span>{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li><a href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li><a href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-left"></i></a></li>
+        <li><a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}"><i class="fas fa-angle-double-left"></i></a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    initBulkActions('attendanceTableContainer');
+    
+    // Attendance Distribution Chart
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(attendanceCtx, {
+        type: 'bar',
+        data: {
+            labels: ['حاضر', 'غائب', 'متأخر', 'معذور'],
+            datasets: [{
+                label: 'عدد الحالات',
+                data: [{{ stats.present }}, {{ stats.absent }}, {{ stats.late }}, {{ stats.excused }}],
+                backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#64748b'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+    
+    function bulkAction(action) {
+        const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+        const ids = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (ids.length === 0) return;
+        
+        fetchWithCSRF('/dashboard/api/bulk-action/', {
+            method: 'POST',
+            body: JSON.stringify({
+                model: 'attendance',
+                action: 'change_status',
+                ids: ids,
+                params: { status: action }
+            })
+        })
+        .then(data => {
+            if (data.success) {
+                showToast('تم التحديث بنجاح', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        });
+    }
+</script>
+{% endblock %}

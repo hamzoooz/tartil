@@ -1,0 +1,429 @@
+{% extends 'dashboard/base.html' %}
+{% load humanize %}
+
+{% block title %}التقارير والإحصائيات{% endblock %}
+{% block page_title %}التقارير والإحصائيات{% endblock %}
+
+{% block content %}
+<!-- Report Type Selector -->
+<div class="dashboard-card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">نوع التقرير</label>
+                <select class="form-select form-control-dashboard" id="reportType" onchange="changeReportType(this.value)">
+                    <option value="overview" {% if report_type == 'overview' %}selected{% endif %}>نظرة عامة</option>
+                    <option value="students" {% if report_type == 'students' %}selected{% endif %}>تقرير الطلاب</option>
+                    <option value="halaqat" {% if report_type == 'halaqat' %}selected{% endif %}>تقرير الحلقات</option>
+                    <option value="recitations" {% if report_type == 'recitations' %}selected{% endif %}>تقرير التسميعات</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">نطاق التاريخ</label>
+                <select class="form-select form-control-dashboard" id="dateRange" onchange="changeDateRange(this.value)">
+                    <option value="today" {% if date_range == 'today' %}selected{% endif %}>اليوم</option>
+                    <option value="week" {% if date_range == 'week' %}selected{% endif %}>هذا الأسبوع</option>
+                    <option value="month" {% if date_range == 'month' %}selected{% endif %}>هذا الشهر</option>
+                    <option value="quarter" {% if date_range == 'quarter' %}selected{% endif %}>هذا الربع</option>
+                    <option value="year" {% if date_range == 'year' %}selected{% endif %}>هذا العام</option>
+                    <option value="custom" {% if date_range == 'custom' %}selected{% endif %}>مخصص</option>
+                </select>
+            </div>
+            <div class="col-md-4" id="customDateRange" style="display: {% if date_range == 'custom' %}block{% else %}none{% endif %}">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">من</label>
+                        <input type="date" class="form-control form-control-dashboard" id="startDate" value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">إلى</label>
+                        <input type="date" class="form-control form-control-dashboard" id="endDate" value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label d-none d-md-block">&nbsp;</label>
+                <button class="btn btn-dashboard btn-dashboard-primary w-100" onclick="generateReport()">
+                    <i class="fas fa-sync-alt"></i> تحديث
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if report_type == 'overview' %}
+<!-- Overview Report -->
+<div class="row g-4">
+    <!-- Summary Cards -->
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon primary">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="stat-value text-primary">{{ report_data.new_users|intcomma }}</div>
+            <div class="stat-label">مستخدمين جدد</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon success">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-value text-success">{{ report_data.new_students|intcomma }}</div>
+            <div class="stat-label">طلاب جدد</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon warning">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-value text-warning">{{ report_data.sessions_count|intcomma }}</div>
+            <div class="stat-label">جلسات منعقدة</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon info">
+                <i class="fas fa-microphone-alt"></i>
+            </div>
+            <div class="stat-value text-info">{{ report_data.recitations_count|intcomma }}</div>
+            <div class="stat-label">تسميعات</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-md-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon success">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-value text-success">{{ report_data.avg_grade|floatformat:1 }}%</div>
+            <div class="stat-label">متوسط الدرجات</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon secondary">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="stat-value text-secondary">{{ report_data.total_attendance|intcomma }}</div>
+            <div class="stat-label">سجلات حضور</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mt-4">
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">نمو المستخدمين</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">النشاط اليومي</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif report_type == 'students' %}
+<!-- Students Report -->
+<div class="dashboard-card mb-4">
+    <div class="card-header">
+        <h5 class="card-title">أفضل الطلاب أداءً</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="dashboard-table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>الطالب</th>
+                        <th>الجلسات</th>
+                        <th>التسميعات</th>
+                        <th>متوسط الدرجة</th>
+                        <th>الصفحات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in report_data.top_performers %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ student.get_full_name|default:student.username }}</td>
+                        <td>{{ student.sessions_count|intcomma }}</td>
+                        <td>{{ student.recitations_count|intcomma }}</td>
+                        <td>
+                            <span class="badge badge-soft-{% if student.avg_grade >= 90 %}success{% elif student.avg_grade >= 70 %}warning{% else %}danger{% endif %}">
+                                {{ student.avg_grade|floatformat:1 }}%
+                            </span>
+                        </td>
+                        <td>{{ student.total_pages|intcomma|default:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">لا توجد بيانات</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% elif report_type == 'halaqat' %}
+<!-- Halaqat Report -->
+<div class="dashboard-card mb-4">
+    <div class="card-header">
+        <h5 class="card-title">أداء الحلقات</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="dashboard-table mb-0">
+                <thead>
+                    <tr>
+                        <th>الحلقة</th>
+                        <th>الشيخ</th>
+                        <th>الطلاب</th>
+                        <th>الجلسات</th>
+                        <th>متوسط الحضور</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for halaqa in report_data.halaqat %}
+                    <tr>
+                        <td>{{ halaqa.name }}</td>
+                        <td>{{ halaqa.sheikh.get_full_name|default:halaqa.sheikh.username }}</td>
+                        <td>{{ halaqa.students_count|intcomma }}</td>
+                        <td>{{ halaqa.sessions_count|intcomma }}</td>
+                        <td>{{ halaqa.avg_attendance|floatformat:1 }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">لا توجد بيانات</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% elif report_type == 'recitations' %}
+<!-- Recitations Report -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-value text-primary">{{ report_data.total|intcomma }}</div>
+            <div class="stat-label">إجمالي التسميعات</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-value text-danger">{{ report_data.errors_count|intcomma }}</div>
+            <div class="stat-label">إجمالي الأخطاء</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-value text-success">
+                {% if report_data.total > 0 %}
+                    {{ report_data.errors_count|div:report_data.total|mul:100|floatformat:1 }}%
+                {% else %}
+                    0%
+                {% endif %}
+            </div>
+            <div class="stat-label">نسبة الخطأ</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">التسميع حسب السورة</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="dashboard-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>السورة</th>
+                                <th>عدد التسميعات</th>
+                                <th>متوسط الدرجة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.by_surah %}
+                            <tr>
+                                <td>{{ item.surah_start__name_arabic }}</td>
+                                <td>{{ item.count|intcomma }}</td>
+                                <td>
+                                    <span class="badge badge-soft-{% if item.avg_grade >= 90 %}success{% elif item.avg_grade >= 70 %}warning{% else %}danger{% endif %}">
+                                        {{ item.avg_grade|floatformat:1 }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">لا توجد بيانات</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">توزيع الدرجات</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="gradesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Export Buttons -->
+<div class="d-flex justify-content-end gap-2 mt-4">
+    <button class="btn btn-dashboard btn-dashboard-light" onclick="exportReport('pdf')">
+        <i class="fas fa-file-pdf text-danger"></i> تصدير PDF
+    </button>
+    <button class="btn btn-dashboard btn-dashboard-light" onclick="exportReport('excel')">
+        <i class="fas fa-file-excel text-success"></i> تصدير Excel
+    </button>
+    <button class="btn btn-dashboard btn-dashboard-primary" onclick="printReport()">
+        <i class="fas fa-print"></i> طباعة
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeReportType(type) {
+        const url = new URL(window.location);
+        url.searchParams.set('type', type);
+        window.location = url;
+    }
+    
+    function changeDateRange(range) {
+        document.getElementById('customDateRange').style.display = range === 'custom' ? 'block' : 'none';
+        const url = new URL(window.location);
+        url.searchParams.set('range', range);
+        if (range !== 'custom') {
+            window.location = url;
+        }
+    }
+    
+    function generateReport() {
+        const url = new URL(window.location);
+        url.searchParams.set('type', document.getElementById('reportType').value);
+        url.searchParams.set('range', document.getElementById('dateRange').value);
+        
+        if (document.getElementById('dateRange').value === 'custom') {
+            url.searchParams.set('start_date', document.getElementById('startDate').value);
+            url.searchParams.set('end_date', document.getElementById('endDate').value);
+        }
+        
+        window.location = url;
+    }
+    
+    function exportReport(format) {
+        showToast(`جاري تصدير التقرير بصيغة ${format}...`, 'info');
+        // Implement export logic
+    }
+    
+    function printReport() {
+        window.print();
+    }
+    
+    {% if report_type == 'overview' %}
+    // Charts
+    new Chart(document.getElementById('userGrowthChart'), {
+        type: 'line',
+        data: {
+            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+            datasets: [{
+                label: 'المستخدمين',
+                data: [12, 19, 15, 25, 22, 30],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    });
+    
+    new Chart(document.getElementById('activityChart'), {
+        type: 'bar',
+        data: {
+            labels: ['سبت', 'أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'],
+            datasets: [{
+                label: 'الجلسات',
+                data: [5, 8, 12, 10, 15, 8, 3],
+                backgroundColor: '#10b981',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    });
+    {% endif %}
+    
+    {% if report_type == 'recitations' %}
+    new Chart(document.getElementById('gradesChart'), {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for item in report_data.by_grade %}
+                '{{ item.grade_level }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for item in report_data.by_grade %}
+                    {{ item.count }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: ['#10b981', '#2563eb', '#f59e0b', '#ef4444', '#64748b']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%'
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

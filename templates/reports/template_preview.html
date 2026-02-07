@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ template.name }} - معاينة القالب - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-eye text-primary me-2"></i>معاينة القالب</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'reports:template_list' %}">قوالب الشهادات</a></li>
+                    <li class="breadcrumb-item active">{{ template.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-md-start">
+            <a href="{% url 'reports:template_edit' template.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>تعديل
+            </a>
+            <a href="{% url 'reports:certificate_create' %}?template={{ template.pk }}" class="btn btn-primary">
+                <i class="fas fa-award me-2"></i>إصدار شهادة
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-image me-2"></i>صورة القالب
+                </div>
+                <div class="card-body text-center p-0">
+                    {% if template.template_image %}
+                    <img src="{{ template.template_image.url }}" class="img-fluid" alt="{{ template.name }}">
+                    {% else %}
+                    <div class="py-5">
+                        <i class="fas fa-image fa-5x text-muted mb-3"></i>
+                        <p class="text-muted">لا توجد صورة للقالب</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>معلومات القالب
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>الاسم:</strong></td>
+                            <td>{{ template.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>الحالة:</strong></td>
+                            <td>
+                                <span class="badge {% if template.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if template.is_active %}نشط{% else %}غير نشط{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>تاريخ الإنشاء:</strong></td>
+                            <td>{{ template.created_at|date:"Y-m-d" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>آخر تحديث:</strong></td>
+                            <td>{{ template.updated_at|date:"Y-m-d" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-font me-2"></i>مواقع النصوص
+                </div>
+                <div class="card-body">
+                    <h6>الاسم:</h6>
+                    <p class="small text-muted">
+                        X: {{ template.name_position_x }} | Y: {{ template.name_position_y }} | 
+                        الحجم: {{ template.name_font_size }}px | اللون: {{ template.name_font_color }}
+                    </p>
+                    
+                    <h6>الدرجة:</h6>
+                    <p class="small text-muted">
+                        X: {{ template.degree_position_x }} | Y: {{ template.degree_position_y }} | 
+                        الحجم: {{ template.degree_font_size }}px | اللون: {{ template.degree_font_color }}
+                    </p>
+                    
+                    <h6>التاريخ:</h6>
+                    <p class="small text-muted">
+                        X: {{ template.date_position_x }} | Y: {{ template.date_position_y }} | 
+                        الحجم: {{ template.date_font_size }}px | اللون: {{ template.date_font_color }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-align-left me-2"></i>النصوص الافتراضية
+                </div>
+                <div class="card-body">
+                    <p><strong>العنوان:</strong> {{ template.default_title|default:"-" }}</p>
+                    <p><strong>الوصف:</strong> {{ template.default_description|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

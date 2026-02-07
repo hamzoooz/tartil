@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - ترتيل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .position-input {
+        max-width: 100px;
+    }
+    .color-input {
+        height: 40px;
+        padding: 5px;
+    }
+    .preview-container {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        min-height: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-palette text-primary me-2"></i>{{ title }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'reports:template_list' %}">قوالب الشهادات</a></li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="templateForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Basic Info -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i>معلومات أساسية
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.name.label }}</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.description.label }}</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.template_image.label }}</label>
+                            {{ form.template_image }}
+                            <div class="form-text">يفضل استخدام صورة بأبعاد 1080 × 760 بكسل (A4 أفقي)</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label">{{ form.is_active.label }}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Default Text -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-font me-2"></i>النصوص الافتراضية
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.default_title.label }}</label>
+                            {{ form.default_title }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.default_description.label }}</label>
+                            {{ form.default_description }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Name Position Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-user me-2"></i>إعدادات اسم الطالب
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.name_font_size.label }}</label>
+                                    {{ form.name_font_size }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.name_font_color.label }}</label>
+                                    {{ form.name_font_color }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.name_position_x.label }}</label>
+                                    {{ form.name_position_x }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.name_position_y.label }}</label>
+                                    {{ form.name_position_y }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.name_font_family.label }}</label>
+                            {{ form.name_font_family }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Degree Position Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-graduation-cap me-2"></i>إعدادات الدرجة/الإنجاز
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.degree_font_size.label }}</label>
+                                    {{ form.degree_font_size }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.degree_font_color.label }}</label>
+                                    {{ form.degree_font_color }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.degree_position_x.label }}</label>
+                                    {{ form.degree_position_x }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.degree_position_y.label }}</label>
+                                    {{ form.degree_position_y }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.degree_font_family.label }}</label>
+                            {{ form.degree_font_family }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Position Settings -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-calendar me-2"></i>إعدادات التاريخ
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.date_font_size.label }}</label>
+                                    {{ form.date_font_size }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.date_font_color.label }}</label>
+                                    {{ form.date_font_color }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.date_position_x.label }}</label>
+                                    {{ form.date_position_x }}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.date_position_y.label }}</label>
+                                    {{ form.date_position_y }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.date_font_family.label }}</label>
+                            {{ form.date_font_family }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 80px;">
+                    <div class="card-header">
+                        <i class="fas fa-eye me-2"></i>معاينة مباشرة
+                    </div>
+                    <div class="card-body">
+                        <div id="previewContainer" class="preview-container text-center">
+                            <p class="text-muted">سيتم عرض المعاينة هنا بعد اختيار القالب</p>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label">اسم للمعاينة</label>
+                            <input type="text" class="form-control" id="previewName" value="أحمد محمد عبدالله">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">درجة للمعاينة</label>
+                            <input type="text" class="form-control" id="previewDegree" value="شهادة إتمام حفظ القرآن">
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" id="updatePreview">
+                            <i class="fas fa-sync me-2"></i>تحديث المعاينة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-2"></i>حفظ القالب
+                </button>
+                <a href="{% url 'reports:template_list' %}" class="btn btn-outline-secondary btn-lg me-2">
+                    <i class="fas fa-times me-2"></i>إلغاء
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تحديث المعاينة
+    document.getElementById('updatePreview').addEventListener('click', function() {
+        const container = document.getElementById('previewContainer');
+        container.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">جاري التحميل...</span></div>';
+        
+        // جمع البيانات من النموذج
+        const formData = new FormData(document.getElementById('templateForm'));
+        
+        // إرسال طلب AJAX للحصول على المعاينة
+        fetch('{% url "reports:ajax_preview_certificate" %}?template=new&name=' + 
+              encodeURIComponent(document.getElementById('previewName').value) + 
+              '&degree=' + encodeURIComponent(document.getElementById('previewDegree').value))
+            .then(response => response.json())
+            .then(data => {
+                if (data.image) {
+                    container.innerHTML = '<img src="' + data.image + '" class="img-fluid rounded shadow" alt="Preview">';
+                } else {
+                    container.innerHTML = '<p class="text-muted">لا يمكن عرض المعاينة. تأكد من رفع صورة القالب.</p>';
+                }
+            })
+            .catch(error => {
+                container.innerHTML = '<p class="text-danger">حدث خطأ في تحميل المعاينة</p>';
+            });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'courses:tafseer_list' %}">دروس التفسير</a></li>
+                    <li class="breadcrumb-item active">{{ lesson.title }}</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ lesson.title }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="badge bg-info">{{ lesson.surah.name_arabic }}</span>
+                        <span class="text-muted">الآيات {{ lesson.ayah_from }} - {{ lesson.ayah_to }}</span>
+                    </div>
+
+                    {% if lesson.summary %}
+                    <div class="alert alert-light border mb-4">
+                        <h6><i class="fas fa-align-left me-2"></i>ملخص الدرس</h6>
+                        <p class="mb-0">{{ lesson.summary }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="lesson-content">
+                        {{ lesson.content|linebreaks }}
+                    </div>
+
+                    {% if lesson.video_url %}
+                    <div class="mt-4">
+                        <h5><i class="fas fa-video me-2 text-danger"></i>فيديو الدرس</h5>
+                        <div class="ratio ratio-16x9">
+                            <iframe src="{{ lesson.video_url }}" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if lesson.audio_url %}
+                    <div class="mt-4">
+                        <h5><i class="fas fa-headphones me-2 text-success"></i>صوت الدرس</h5>
+                        <audio controls class="w-100">
+                            <source src="{{ lesson.audio_url }}" type="audio/mpeg">
+                            متصفحك لا يدعم تشغيل الصوت
+                        </audio>
+                    </div>
+                    {% endif %}
+
+                    {% if lesson.pdf_file %}
+                    <div class="mt-4">
+                        <a href="{{ lesson.pdf_file.url }}" class="btn btn-warning" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>تحميل ملف PDF
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-eye me-1"></i> {{ lesson.view_count }} مشاهدة
+                        </small>
+                        <a href="{% url 'courses:tafseer_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-right me-2"></i>العودة للقائمة
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 80px;">
+                <div class="card-header">
+                    <h6 class="mb-0">معلومات الدرس</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>السورة:</span>
+                            <span class="fw-bold">{{ lesson.surah.name_arabic }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>من آية:</span>
+                            <span>{{ lesson.ayah_from }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>إلى آية:</span>
+                            <span>{{ lesson.ayah_to }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- دروس أخرى من نفس السورة -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">دروس أخرى من {{ lesson.surah.name_arabic }}</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for other_lesson in lesson.surah.tafseer_lessons.all|slice:":5" %}
+                    {% if other_lesson != lesson %}
+                    <a href="{% url 'courses:tafseer_detail' other_lesson.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>{{ other_lesson.title }}</span>
+                            <small class="text-muted">{{ other_lesson.ayah_from }}-{{ other_lesson.ayah_to }}</small>
+                        </div>
+                    </a>
+                    {% endif %}
+                    {% empty %}
+                    <div class="list-group-item text-muted">لا توجد دروس أخرى</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

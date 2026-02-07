@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}{{ quote.title }} - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'courses:quotes' %}">الكلمات التحفيزية</a></li>
+                    <li class="breadcrumb-item active">{{ quote.title }}</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow">
+                {% if quote.image %}
+                <img src="{{ quote.image.url }}" class="card-img-top" alt="{{ quote.title }}" style="max-height: 400px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body p-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="badge bg-primary">{{ quote.get_category_display }}</span>
+                        <small class="text-muted">
+                            <i class="fas fa-eye me-1"></i> {{ quote.view_count }} مشاهدة
+                        </small>
+                    </div>
+                    
+                    <h2 class="card-title mb-4">{{ quote.title }}</h2>
+                    
+                    <blockquote class="blockquote text-center my-5">
+                        <p class="fs-4">{{ quote.content }}</p>
+                        {% if quote.author %}
+                        <footer class="blockquote-footer mt-3">{{ quote.author }}</footer>
+                        {% endif %}
+                    </blockquote>
+                    
+                    {% if quote.audio %}
+                    <div class="mt-4">
+                        <h6><i class="fas fa-volume-up me-2"></i>استمع للكلمة</h6>
+                        <audio controls class="w-100">
+                            <source src="{{ quote.audio.url }}" type="audio/mpeg">
+                            متصفحك لا يدعم تشغيل الصوت
+                        </audio>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent p-4">
+                    <a href="{% url 'courses:quotes' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>العودة للقائمة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

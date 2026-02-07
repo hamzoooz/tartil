@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - ترتيل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-preview {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-chart-bar text-primary me-2"></i>{{ title }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'reports:report_list' %}">تقارير الطلاب</a></li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <form method="post" id="reportForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-user me-2"></i>اختيار الطالب والفترة
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.student.label }} <span class="text-danger">*</span></label>
+                                    {{ form.student }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.report_period.label }} <span class="text-danger">*</span></label>
+                                    {{ form.report_period }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.start_date.label }} <span class="text-danger">*</span></label>
+                                    {{ form.start_date }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.end_date.label }} <span class="text-danger">*</span></label>
+                                    {{ form.end_date }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ form.auto_generate }}
+                            <label class="form-check-label" for="{{ form.auto_generate.id_for_label }}">
+                                {{ form.auto_generate.label }}
+                            </label>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" id="loadStats">
+                            <i class="fas fa-sync me-2"></i>تحميل الإحصائيات
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-2"></i>الإحصائيات
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.total_sessions.label }}</label>
+                                    {{ form.total_sessions }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.total_recitations.label }}</label>
+                                    {{ form.total_recitations }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.average_grade.label }}</label>
+                                    {{ form.average_grade }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.total_pages_memorized.label }}</label>
+                                    {{ form.total_pages_memorized }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.total_pages_reviewed.label }}</label>
+                                    {{ form.total_pages_reviewed }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.attendance_rate.label }}</label>
+                                    {{ form.attendance_rate }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle me-2"></i>الأخطاء
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.total_errors.label }}</label>
+                                    {{ form.total_errors }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.tajweed_errors.label }}</label>
+                                    {{ form.tajweed_errors }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.memorization_errors.label }}</label>
+                                    {{ form.memorization_errors }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-comment me-2"></i>التقييم والتوصيات
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.general_evaluation.label }}</label>
+                            {{ form.general_evaluation }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.recommendations.label }}</label>
+                            {{ form.recommendations }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 80px;">
+                    <div class="card-header">
+                        <i class="fas fa-eye me-2"></i>معاينة الإحصائيات
+                    </div>
+                    <div class="card-body">
+                        <div id="statsPreview" class="stats-preview">
+                            <p class="text-muted text-center mb-0">اختر الطالب والفترة لعرض الإحصائيات</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-2"></i>حفظ التقرير
+                </button>
+                <a href="{% url 'reports:report_list' %}" class="btn btn-outline-secondary btn-lg me-2">
+                    <i class="fas fa-times me-2"></i>إلغاء
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('loadStats').addEventListener('click', function() {
+        const studentId = document.getElementById('{{ form.student.id_for_label }}').value;
+        const startDate = document.getElementById('{{ form.start_date.id_for_label }}').value;
+        const endDate = document.getElementById('{{ form.end_date.id_for_label }}').value;
+        
+        if (!studentId) {
+            alert('يرجى اختيار طالب أولاً');
+            return;
+        }
+        
+        const preview = document.getElementById('statsPreview');
+        preview.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">جاري التحميل...</p></div>';
+        
+        fetch('{% url "reports:ajax_get_student_stats" %}?student=' + studentId + 
+              '&start_date=' + startDate + '&end_date=' + endDate)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    preview.innerHTML = '<p class="text-danger text-center">' + data.error + '</p>';
+                    return;
+                }
+                
+                // تحديث حقول النموذج
+                document.getElementById('{{ form.total_sessions.id_for_label }}').value = data.total_sessions;
+                document.getElementById('{{ form.total_recitations.id_for_label }}').value = data.total_recitations;
+                document.getElementById('{{ form.average_grade.id_for_label }}').value = data.average_grade;
+                document.getElementById('{{ form.total_pages_memorized.id_for_label }}').value = data.total_pages_memorized;
+                document.getElementById('{{ form.total_pages_reviewed.id_for_label }}').value = data.total_pages_reviewed;
+                document.getElementById('{{ form.total_errors.id_for_label }}').value = data.total_errors;
+                document.getElementById('{{ form.attendance_rate.id_for_label }}').value = data.attendance_rate;
+                
+                // عرض المعاينة
+                preview.innerHTML = `
+                    <h6 class="text-center mb-3">${data.student_name}</h6>
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="stat-value text-primary">${data.total_recitations}</div>
+                            <small class="text-muted">تسميعة</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stat-value text-success">${data.average_grade}%</div>
+                            <small class="text-muted">متوسط الدرجة</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stat-value text-info">${data.total_pages_memorized}</div>
+                            <small class="text-muted">صفحة محفوظة</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stat-value text-warning">${data.attendance_rate}%</div>
+                            <small class="text-muted">نسبة الحضور</small>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                preview.innerHTML = '<p class="text-danger text-center">حدث خطأ في تحميل الإحصائيات</p>';
+            });
+    });
+</script>
+{% endblock %}

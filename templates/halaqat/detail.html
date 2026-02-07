@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ halaqa.name }} - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'halaqat:list' %}">الحلقات</a></li>
+            <li class="breadcrumb-item active">{{ halaqa.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <h2 class="mb-2">
+                <i class="fas fa-users-class text-primary me-2"></i> {{ halaqa.name }}
+                {% if halaqa.status == 'active' %}
+                <span class="badge bg-success">نشطة</span>
+                {% elif halaqa.status == 'paused' %}
+                <span class="badge bg-warning">متوقفة</span>
+                {% elif halaqa.status == 'completed' %}
+                <span class="badge bg-info">مكتملة</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ halaqa.get_status_display }}</span>
+                {% endif %}
+            </h2>
+            <p class="text-muted">{{ halaqa.description|default:"لا يوجد وصف" }}</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            {% if user.is_student %}
+                {% if is_enrolled %}
+                <span class="btn btn-success disabled">
+                    <i class="fas fa-check me-2"></i> مسجل في الحلقة
+                </span>
+                {% elif not halaqa.is_full %}
+                <a href="{% url 'halaqat:enroll' halaqa.id %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i> الانضمام للحلقة
+                </a>
+                {% else %}
+                <span class="btn btn-secondary disabled">
+                    <i class="fas fa-lock me-2"></i> الحلقة مكتملة
+                </span>
+                {% endif %}
+            {% endif %}
+            
+            {% if user.is_sheikh and user == halaqa.sheikh or user.is_admin %}
+            <a href="#" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-edit"></i> تعديل
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- معلومات الحلقة -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-info-circle me-2"></i> معلومات الحلقة
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-user-tie me-2 text-primary"></i> الشيخ</span>
+                            <strong>{{ halaqa.sheikh.get_full_name }}</strong>
+                        </li>
+                        {% if halaqa.course %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-book me-2 text-primary"></i> المسار</span>
+                            <strong>{{ halaqa.course.name }}</strong>
+                        </li>
+                        {% endif %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-users me-2 text-primary"></i> الطلاب</span>
+                            <strong>{{ halaqa.enrolled_count }} / {{ halaqa.max_students }}</strong>
+                        </li>
+                        {% if halaqa.schedule_days %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-calendar me-2 text-primary"></i> الأيام</span>
+                            <strong>{{ halaqa.schedule_days }}</strong>
+                        </li>
+                        {% endif %}
+                        {% if halaqa.schedule_time %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-clock me-2 text-primary"></i> الوقت</span>
+                            <strong>{{ halaqa.schedule_time|time:"H:i" }}</strong>
+                        </li>
+                        {% endif %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="fas fa-hourglass-half me-2 text-primary"></i> المدة</span>
+                            <strong>{{ halaqa.duration_minutes }} دقيقة</strong>
+                        </li>
+                        {% if halaqa.meet_link %}
+                        <li class="list-group-item">
+                            <a href="{{ halaqa.meet_link }}" target="_blank" class="btn btn-success w-100">
+                                <i class="fas fa-video me-2"></i> رابط الاجتماع
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- نسبة الاكتمال -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i> نسبة الاكتمال
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar progress-bar-striped" 
+                             role="progressbar" 
+                             style="width: {% widthratio halaqa.enrolled_count halaqa.max_students 100 %}%"
+                             aria-valuenow="{{ halaqa.enrolled_count }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ halaqa.max_students }}">
+                            {% widthratio halaqa.enrolled_count halaqa.max_students 100 %}%
+                        </div>
+                    </div>
+                    <p class="text-center text-muted mb-0">
+                        {{ halaqa.available_spots }} مقاعد متاحة
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- قائمة الطلاب -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-user-graduate me-2"></i> طلاب الحلقة</span>
+                    <span class="badge bg-primary">{{ enrollments|length }} طالب</span>
+                </div>
+                <div class="card-body">
+                    {% if enrollments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الطالب</th>
+                                    <th>تاريخ التسجيل</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if enrollment.student.profile_image %}
+                                            <img src="{{ enrollment.student.profile_image.url }}" 
+                                                 class="rounded-circle me-2" width="35" height="35" alt="">
+                                            {% else %}
+                                            <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                 style="width: 35px; height: 35px;">
+                                                <i class="fas fa-user text-white" style="font-size: 14px;"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ enrollment.student.get_full_name }}</div>
+                                                <small class="text-muted">{{ enrollment.student.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ enrollment.enrolled_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        {% if enrollment.status == 'active' %}
+                                        <span class="badge bg-success">نشط</span>
+                                        {% elif enrollment.status == 'completed' %}
+                                        <span class="badge bg-info">مكتمل</span>
+                                        {% elif enrollment.status == 'withdrawn' %}
+                                        <span class="badge bg-secondary">منسحب</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">{{ enrollment.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">لا يوجد طلاب مسجلين في هذه الحلقة</h5>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- الجلسات القادمة -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-calendar-alt me-2"></i> الجلسات القادمة
+                </div>
+                <div class="card-body">
+                    {% with upcoming_sessions=halaqa.sessions.all|dictsort:"date"|slice:":5" %}
+                        {% if upcoming_sessions %}
+                        <div class="list-group">
+                            {% for session in upcoming_sessions %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-circle text-{% if session.status == 'completed' %}success{% elif session.status == 'scheduled' %}primary{% else %}warning{% endif %} me-2"></i>
+                                    {{ session.date|date:"Y-m-d" }}
+                                    <span class="text-muted">| {{ session.start_time|time:"H:i" }}</span>
+                                </div>
+                                <span class="badge bg-{% if session.status == 'completed' %}success{% elif session.status == 'scheduled' %}primary{% else %}warning{% endif %}">
+                                    {{ session.get_status_display }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center mb-0">لا توجد جلسات مجدولة</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ certificate.display_name }} - شهادة - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-award text-warning me-2"></i>شهادة #{{ certificate.certificate_number }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'reports:certificate_list' %}">الشهادات</a></li>
+                    <li class="breadcrumb-item active">{{ certificate.display_name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-md-start">
+            <a href="{% url 'reports:certificate_download' certificate.pk %}" class="btn btn-success">
+                <i class="fas fa-download me-2"></i>تحميل
+            </a>
+            {% if user.is_admin or user.is_sheikh %}
+            <a href="{% url 'reports:certificate_delete' certificate.pk %}" class="btn btn-outline-danger">
+                <i class="fas fa-trash me-2"></i>حذف
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-image me-2"></i>صورة الشهادة
+                </div>
+                <div class="card-body text-center p-0">
+                    {% if certificate.generated_file %}
+                    <img src="{{ certificate.generated_file.url }}" class="img-fluid rounded" alt="شهادة {{ certificate.display_name }}">
+                    {% else %}
+                    <div class="py-5">
+                        <i class="fas fa-certificate fa-5x text-muted mb-3"></i>
+                        <p class="text-muted">جاري توليد الشهادة...</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>معلومات الشهادة
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>رقم الشهادة:</strong></td>
+                            <td>{{ certificate.certificate_number }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>الطالب:</strong></td>
+                            <td>{{ certificate.display_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>تاريخ الإصدار:</strong></td>
+                            <td>{{ certificate.issue_date|date:"Y-m-d" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>القالب:</strong></td>
+                            <td>{{ certificate.template.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>الحالة:</strong></td>
+                            <td>
+                                <span class="badge 
+                                    {% if certificate.status == 'issued' %}bg-success
+                                    {% elif certificate.status == 'draft' %}bg-warning
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ certificate.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-graduation-cap me-2"></i>الدرجة/الإنجاز
+                </div>
+                <div class="card-body">
+                    <h5>{{ certificate.degree_title }}</h5>
+                    <p class="text-muted">{{ certificate.degree_description }}</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user me-2"></i>بيانات الطالب
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if certificate.student.profile_image %}
+                        <img src="{{ certificate.student.profile_image.url }}" class="avatar-lg me-3" alt="">
+                        {% else %}
+                        <div class="avatar-lg me-3 bg-primary d-flex align-items-center justify-content-center text-white fs-2">
+                            {{ certificate.student.first_name|first }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="mb-1">{{ certificate.student.get_full_name }}</h5>
+                            <p class="text-muted mb-0">{{ certificate.student.email }}</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'reports:report_list' %}?student={{ certificate.student.id }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-chart-bar me-2"></i>عرض تقارير الطالب
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -5,17 +5,26 @@ Django settings for Tartil project.
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-v39qy$k1y=815g+yf$7d1my(j23i-9&&7j4gge@n-9=8399j-l'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-v39qy$k1y=815g+yf$7d1my(j23i-9&&7j4gge@n-9=8399j-l')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['tartil.zolna.app', 'www.tartil.zolna.app', 
+                 'qurancourses.org', 'www.qurancourses.org',
+                 'localhost', '127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = ['https://tartil.zolna.app', 'https://www.tartil.zolna.app',
+                         'https://qurancourses.org', 'https://www.qurancourses.org',
+                         'http://localhost', 'http://127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -34,10 +43,14 @@ INSTALLED_APPS = [
     'recitation.apps.RecitationConfig',
     'gamification.apps.GamificationConfig',
     'reports.apps.ReportsConfig',
+    'courses.apps.CoursesConfig',
+    # لوحة التحكم المتقدمة
+    'dashboard.apps.DashboardConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -60,6 +73,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # معالجات السياق المخصصة
+                'courses.context_processors.notifications_context',
+                'courses.context_processors.courses_context',
             ],
         },
     },
@@ -72,6 +88,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,
+        }
     }
 }
 
@@ -141,3 +160,43 @@ MESSAGE_TAGS = {
 # Session settings
 SESSION_COOKIE_AGE = 86400 * 7  # 7 days
 SESSION_SAVE_EVERY_REQUEST = True
+
+# WhiteNoise for static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# تفعيل WhiteNoise في جميع البيئات
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    # إعدادات التطوير
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+# إعدادات التخزين المؤقت
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# إعدادات الملفات المرفوعة
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = DEBUG

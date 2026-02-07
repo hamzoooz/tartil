@@ -1,0 +1,23 @@
+# Gunicorn systemd service
+# /etc/systemd/system/tartil.service
+
+[Unit]
+Description=Tartil Gunicorn Daemon
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/hamzoooz/profiles/tartil
+ExecStart=/home/ubuntu/hamzoooz/profiles/tartil/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8005 \
+    --access-logfile /var/log/gunicorn/tartil_access.log \
+    --error-logfile /var/log/gunicorn/tartil_error.log \
+    tartil.wsgi:application
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

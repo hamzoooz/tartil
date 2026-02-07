@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - ترتيل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-container {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+    }
+    .position-override {
+        display: none;
+    }
+    .position-override.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-award text-warning me-2"></i>{{ title }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'reports:certificate_list' %}">الشهادات</a></li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <form method="post" id="certificateForm">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-user me-2"></i>بيانات الطالب
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.student.label }} <span class="text-danger">*</span></label>
+                                    {{ form.student }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ form.template.label }} <span class="text-danger">*</span></label>
+                                    {{ form.template }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.custom_name.label }}</label>
+                            {{ form.custom_name }}
+                            <div class="form-text">اتركه فارغاً لاستخدام اسم الطالب من الملف الشخصي</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-graduation-cap me-2"></i>بيانات الشهادة
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.degree_title.label }}</label>
+                            {{ form.degree_title }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.degree_description.label }}</label>
+                            {{ form.degree_description }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.issue_date.label }}</label>
+                            {{ form.issue_date }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-cogs me-2"></i>تخصيص المواقع (اختياري)
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            {{ form.customize_positions }}
+                            <label class="form-check-label" for="{{ form.customize_positions.id_for_label }}">
+                                تخصيص مواقع النصوص على الشهادة
+                            </label>
+                        </div>
+                        
+                        <div class="position-override" id="positionOverrides">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>موقع الاسم:</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">X</label>
+                                                {{ form.name_position_x_override }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Y</label>
+                                                {{ form.name_position_y_override }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>موقع الدرجة:</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">X</label>
+                                                {{ form.degree_position_x_override }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Y</label>
+                                                {{ form.degree_position_y_override }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 80px;">
+                    <div class="card-header">
+                        <i class="fas fa-eye me-2"></i>معاينة
+                    </div>
+                    <div class="card-body">
+                        <div id="previewContainer" class="preview-container">
+                            <p class="text-muted">اختر الطالب والقالب لعرض المعاينة</p>
+                        </div>
+                        <hr>
+                        <button type="button" class="btn btn-outline-primary w-100" id="refreshPreview">
+                            <i class="fas fa-sync me-2"></i>تحديث المعاينة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-2"></i>إنشاء الشهادة
+                </button>
+                <a href="{% url 'reports:certificate_list' %}" class="btn btn-outline-secondary btn-lg me-2">
+                    <i class="fas fa-times me-2"></i>إلغاء
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // إظهار/إخفاء حقول التخصيص
+    document.getElementById('{{ form.customize_positions.id_for_label }}').addEventListener('change', function() {
+        document.getElementById('positionOverrides').classList.toggle('show', this.checked);
+    });
+
+    // تحديث المعاينة
+    document.getElementById('refreshPreview').addEventListener('click', updatePreview);
+    
+    // تحديث المعاينة عند تغيير القالب
+    document.getElementById('{{ form.template.id_for_label }}').addEventListener('change', updatePreview);
+
+    function updatePreview() {
+        const templateId = document.getElementById('{{ form.template.id_for_label }}').value;
+        const name = document.getElementById('{{ form.custom_name.id_for_label }}').value || 
+                     document.getElementById('{{ form.student.id_for_label }}').options[document.getElementById('{{ form.student.id_for_label }}').selectedIndex].text;
+        const degree = document.getElementById('{{ form.degree_title.id_for_label }}').value || 'شهادة إتمام';
+        
+        if (!templateId) {
+            document.getElementById('previewContainer').innerHTML = '<p class="text-muted">اختر قالباً أولاً</p>';
+            return;
+        }
+
+        const container = document.getElementById('previewContainer');
+        container.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">جاري التحميل...</span></div>';
+
+        fetch('{% url "reports:ajax_preview_certificate" %}?template=' + templateId + 
+              '&name=' + encodeURIComponent(name) + 
+              '&degree=' + encodeURIComponent(degree))
+            .then(response => response.json())
+            .then(data => {
+                if (data.image) {
+                    container.innerHTML = '<img src="' + data.image + '" class="img-fluid rounded shadow" alt="Preview">';
+                } else {
+                    container.innerHTML = '<p class="text-muted">لا يمكن عرض المعاينة</p>';
+                }
+            })
+            .catch(error => {
+                container.innerHTML = '<p class="text-danger">حدث خطأ في تحميل المعاينة</p>';
+            });
+    }
+</script>
+{% endblock %}

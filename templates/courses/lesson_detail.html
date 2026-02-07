@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'courses:list' %}">المقررات</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'courses:detail' lesson.curriculum.pk %}">{{ lesson.curriculum.name }}</a></li>
+                    <li class="breadcrumb-item active">{{ lesson.title }}</li>
+                </ol>
+            </nav>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ lesson.title }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 mb-4">
+                        <span class="badge bg-primary">{{ lesson.get_lesson_type_display }}</span>
+                        <span class="badge bg-secondary">{{ lesson.duration_minutes }} دقيقة</span>
+                    </div>
+
+                    {% if lesson.description %}
+                    <h5>وصف الدرس</h5>
+                    <p>{{ lesson.description }}</p>
+                    {% endif %}
+
+                    {% if lesson.surah_from %}
+                    <div class="alert alert-light border">
+                        <h6><i class="fas fa-book-quran me-2 text-primary"></i>المحتوى القرآني</h6>
+                        <p class="mb-0">
+                            من سورة {{ lesson.surah_from.name_arabic }} (آية {{ lesson.ayah_from }})
+                            إلى سورة {{ lesson.surah_to.name_arabic }} (آية {{ lesson.ayah_to }})
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if lesson.tafseer_content %}
+                    <h5 class="mt-4"><i class="fas fa-book-open me-2 text-primary"></i>التفسير</h5>
+                    <div class="p-3 bg-light rounded">
+                        {{ lesson.tafseer_content|linebreaks }}
+                    </div>
+                    {% endif %}
+
+                    {% if lesson.tafseer_video_url %}
+                    <div class="mt-4">
+                        <h5><i class="fas fa-video me-2 text-danger"></i>فيديو التفسير</h5>
+                        <div class="ratio ratio-16x9">
+                            <iframe src="{{ lesson.tafseer_video_url }}" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    {% if user.is_authenticated and user.is_student %}
+                    <a href="{% url 'courses:lesson_complete' lesson.pk %}" class="btn btn-success">
+                        <i class="fas fa-check-circle me-2"></i>تحديد كمكتمل
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'courses:detail' lesson.curriculum.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>العودة للمقرر
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">معلومات الدرس</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>رقم الدرس:</span>
+                            <span class="fw-bold">{{ lesson.lesson_number }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>نوع الدرس:</span>
+                            <span>{{ lesson.get_lesson_type_display }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>المدة:</span>
+                            <span>{{ lesson.duration_minutes }} دقيقة</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>المقرر:</span>
+                            <span>{{ lesson.curriculum.name }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- الدروس الأخرى -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">دروس أخرى في المقرر</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for other_lesson in lesson.curriculum.lessons.all|slice:":5" %}
+                    {% if other_lesson != lesson %}
+                    <a href="{% url 'courses:lesson_detail' other_lesson.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>{{ other_lesson.title }}</span>
+                            <small class="text-muted">{{ other_lesson.lesson_number }}</small>
+                        </div>
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

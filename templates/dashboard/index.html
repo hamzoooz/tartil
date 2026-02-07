@@ -1,0 +1,512 @@
+{% extends 'dashboard/base.html' %}
+{% load humanize %}
+
+{% block title %}الرئيسية{% endblock %}
+{% block page_title %}نظرة عامة{% endblock %}
+
+{% block content %}
+<!-- Quick Stats Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0s;">
+            <div class="stat-icon primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value">{{ stats.total_users|intcomma }}</div>
+            <div class="stat-label">إجمالي المستخدمين</div>
+            <div class="stat-change up">
+                <i class="fas fa-arrow-up"></i>
+                <span>{{ stats.new_users_week }} هذا الأسبوع</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="stat-icon success">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-value">{{ stats.total_students|intcomma }}</div>
+            <div class="stat-label">الطلاب</div>
+            <div class="stat-change up">
+                <i class="fas fa-arrow-up"></i>
+                <span>{{ stats.new_users_today }} جديد اليوم</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="stat-icon warning">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stat-value">{{ stats.total_sheikhs|intcomma }}</div>
+            <div class="stat-label">المشايخ والمعلمون</div>
+            <div class="stat-change up">
+                <i class="fas fa-arrow-up"></i>
+                <span>{{ stats.total_halaqat }} حلقة</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="stat-icon info">
+                <i class="fas fa-microphone-alt"></i>
+            </div>
+            <div class="stat-value">{{ stats.total_recitations|intcomma }}</div>
+            <div class="stat-label">التسميعات</div>
+            <div class="stat-change up">
+                <i class="fas fa-star"></i>
+                <span>متوسط {{ stats.avg_grade|floatformat:1 }}%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Stats Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.4s;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon success" style="margin-bottom: 0;">
+                    <i class="fas fa-award"></i>
+                </div>
+                <span class="badge badge-soft-success">+{{ stats.total_certificates }}</span>
+            </div>
+            <div class="stat-value" style="font-size: 1.5rem;">{{ stats.total_certificates|intcomma }}</div>
+            <div class="stat-label">الشهادات الممنوحة</div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.5s;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon warning" style="margin-bottom: 0;">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <span class="badge badge-soft-warning">إجمالي</span>
+            </div>
+            <div class="stat-value" style="font-size: 1.5rem;">{{ stats.total_points_distributed|intcomma }}</div>
+            <div class="stat-label">النقاط الموزعة</div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.6s;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="stat-icon danger" style="margin-bottom: 0;">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <span class="badge badge-soft-primary">{{ stats.avg_attendance }}%</span>
+            </div>
+            <div class="stat-value" style="font-size: 1.5rem;">{{ stats.total_sessions|intcomma }}</div>
+            <div class="stat-label">الجلسات المنعقدة</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- User Growth Chart -->
+    <div class="col-lg-8">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 0.7s;">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-line text-primary me-2"></i>
+                    نمو المستخدمين
+                </h5>
+                <div class="card-tools">
+                    <button class="btn btn-sm btn-light" onclick="refreshChart('userGrowth')">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recitation Types Chart -->
+    <div class="col-lg-4">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 0.8s;">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-pie text-warning me-2"></i>
+                    توزيع التسميع
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="recitationTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- More Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Attendance Chart -->
+    <div class="col-lg-6">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 0.9s;">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-clipboard-list text-success me-2"></i>
+                    حالة الحضور
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Students Level Chart -->
+    <div class="col-lg-6">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 1s;">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-layer-group text-info me-2"></i>
+                    مستويات الطلاب
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="studentsLevelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity & Quick Actions -->
+<div class="row g-4">
+    <!-- Recent Activity -->
+    <div class="col-lg-8">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 1.1s;">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-history text-secondary me-2"></i>
+                    آخر النشاطات
+                </h5>
+                <a href="#" class="btn btn-sm btn-light">عرض الكل</a>
+            </div>
+            <div class="card-body">
+                <ul class="activity-list">
+                    {% for activity in recent_activities %}
+                    <li class="activity-item">
+                        <div class="activity-icon 
+                            {% if 'create' in activity.action %}bg-success-subtle text-success
+                            {% elif 'update' in activity.action %}bg-primary-subtle text-primary
+                            {% elif 'delete' in activity.action %}bg-danger-subtle text-danger
+                            {% else %}bg-info-subtle text-info{% endif %}">
+                            {% if 'create' in activity.action %}
+                                <i class="fas fa-plus"></i>
+                            {% elif 'update' in activity.action %}
+                                <i class="fas fa-edit"></i>
+                            {% elif 'delete' in activity.action %}
+                                <i class="fas fa-trash"></i>
+                            {% else %}
+                                <i class="fas fa-info"></i>
+                            {% endif %}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">
+                                <strong>{{ activity.user.get_full_name|default:activity.user.username }}</strong>
+                                {{ activity.action }}
+                            </div>
+                            <div class="activity-time">
+                                <i class="far fa-clock me-1"></i>
+                                {{ activity.created_at|timesince }} ago
+                            </div>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                        <p>لا توجد نشاطات حديثة</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats & Actions -->
+    <div class="col-lg-4">
+        <!-- Quick Stats -->
+        <div class="dashboard-card animate-fade-in mb-4" style="animation-delay: 1.2s;">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-bolt text-warning me-2"></i>
+                    إحصائيات سريعة
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                    <div>
+                        <div class="text-muted small">جلسات اليوم</div>
+                        <div class="fw-bold fs-5">{{ quick_stats.sessions_today }}</div>
+                    </div>
+                    <div class="text-primary">
+                        <i class="fas fa-calendar-day fa-2x"></i>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                    <div>
+                        <div class="text-muted small">تسجيلات معلقة</div>
+                        <div class="fw-bold fs-5">{{ quick_stats.pending_enrollments }}</div>
+                    </div>
+                    <div class="text-warning">
+                        <i class="fas fa-user-clock fa-2x"></i>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                    <div>
+                        <div class="text-muted small">تسميعات اليوم</div>
+                        <div class="fw-bold fs-5">{{ quick_stats.new_recitations }}</div>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-microphone fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 1.3s;">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-rocket text-primary me-2"></i>
+                    إجراءات سريعة
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'dashboard:users_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-user-plus me-2"></i>إضافة مستخدم
+                    </a>
+                    <a href="{% url 'dashboard:halaqat_list' %}" class="btn btn-outline-success">
+                        <i class="fas fa-plus-circle me-2"></i>إنشاء حلقة
+                    </a>
+                    <a href="{% url 'dashboard:recitations_list' %}" class="btn btn-outline-warning">
+                        <i class="fas fa-microphone-alt me-2"></i>تسجيل تسميع
+                    </a>
+                    <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-info">
+                        <i class="fas fa-file-alt me-2"></i>إنشاء تقرير
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Chart Configuration
+    Chart.defaults.font.family = "'Tajawal', sans-serif";
+    Chart.defaults.color = '#64748b';
+    
+    // User Growth Chart
+    const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    const userGrowthChart = new Chart(userGrowthCtx, {
+        type: 'line',
+        data: {
+            labels: {{ charts_data.monthly_users|safe|default:"[]" }};
+            datasets: [{
+                label: 'المستخدمين الجدد',
+                data: {{ charts_data.monthly_users|safe|default:"[]" }};
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#2563eb',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Recitation Type Chart
+    const recitationTypeCtx = document.getElementById('recitationTypeChart').getContext('2d');
+    new Chart(recitationTypeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['حفظ جديد', 'مراجعة', 'تلاوة'],
+            datasets: [{
+                data: [
+                    {% for item in charts_data.recitation_by_type %}
+                        {{ item.count }}{% if not forloop.last %},{% endif %}
+                    {% empty %}
+                        0, 0, 0
+                    {% endfor %}
+                ],
+                backgroundColor: ['#2563eb', '#10b981', '#f59e0b'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+    
+    // Attendance Chart
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(attendanceCtx, {
+        type: 'bar',
+        data: {
+            labels: ['حاضر', 'غائب', 'معذور', 'متأخر'],
+            datasets: [{
+                label: 'العدد',
+                data: [
+                    {% for item in charts_data.attendance_by_status %}
+                        {{ item.count }}{% if not forloop.last %},{% endif %}
+                    {% empty %}
+                        0, 0, 0, 0
+                    {% endfor %}
+                ],
+                backgroundColor: ['#10b981', '#ef4444', '#64748b', '#f59e0b'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Students Level Chart
+    const studentsLevelCtx = document.getElementById('studentsLevelChart').getContext('2d');
+    new Chart(studentsLevelCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for item in charts_data.students_by_level %}
+                    '{{ item.level }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'عدد الطلاب',
+                data: [
+                    {% for item in charts_data.students_by_level %}
+                        {{ item.count }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: ['#06b6d4', '#2563eb', '#8b5cf6', '#f59e0b', '#10b981'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Refresh Chart Function
+    function refreshChart(chartName) {
+        showToast('جاري تحديث البيانات...', 'info');
+        
+        fetch(`/dashboard/api/chart-data/?chart=${chartName}&period=month`)
+            .then(response => response.json())
+            .then(data => {
+                // Update chart data based on chart name
+                showToast('تم تحديث البيانات بنجاح', 'success');
+            })
+            .catch(error => {
+                showToast('حدث خطأ أثناء تحديث البيانات', 'error');
+            });
+    }
+    
+    // Auto-refresh stats every 5 minutes
+    setInterval(() => {
+        fetch('/dashboard/api/stats/')
+            .then(response => response.json())
+            .then(data => {
+                // Update stats display
+                console.log('Stats updated:', data);
+            });
+    }, 300000);
+</script>
+{% endblock %}

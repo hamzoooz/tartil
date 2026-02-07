@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}المقررات الدراسية - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4"><i class="fas fa-graduation-cap text-primary me-2"></i>المقررات الدراسية</h2>
+            <p class="text-muted">اختر المقرر المناسب لك وابدأ رحلتك في تعلم القرآن الكريم</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for curriculum in curriculums %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                {% if curriculum.image %}
+                <img src="{{ curriculum.image.url }}" class="card-img-top" alt="{{ curriculum.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-book-quran fa-4x text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ curriculum.name }}</h5>
+                    <span class="badge bg-primary mb-2">{{ curriculum.get_curriculum_type_display }}</span>
+                    <p class="card-text text-muted">{{ curriculum.description|truncatewords:20 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>{{ curriculum.duration_weeks }} أسبوع
+                        </small>
+                        <small class="text-muted">
+                            <i class="fas fa-book me-1"></i>{{ curriculum.total_lessons }} درس
+                        </small>
+                    </div>
+                    
+                    <a href="{% url 'courses:detail' curriculum.pk %}" class="btn btn-primary w-100">
+                        <i class="fas fa-info-circle me-1"></i> تفاصيل المقرر
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <p>لا توجد مقررات متاحة حالياً</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

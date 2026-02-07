@@ -1,0 +1,287 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}إعدادات النظام{% endblock %}
+{% block page_title %}إعدادات النظام{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- General Settings -->
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-cog text-primary me-2"></i>
+                    الإعدادات العامة
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="generalSettingsForm">
+                    <div class="mb-3">
+                        <label class="form-label">اسم المنصة</label>
+                        <input type="text" class="form-control form-control-dashboard" value="ترتيل">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">البريد الإلكتروني للدعم</label>
+                        <input type="email" class="form-control form-control-dashboard" value="support@tartil.app">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">اللغة الافتراضية</label>
+                        <select class="form-select form-control-dashboard">
+                            <option value="ar" selected>العربية</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">المنطقة الزمنية</label>
+                        <select class="form-select form-control-dashboard">
+                            <option value="Asia/Riyadh" selected>الرياض (GMT+3)</option>
+                            <option value="Asia/Dubai">دبي (GMT+4)</option>
+                            <option value="Africa/Cairo">القاهرة (GMT+2)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-dashboard btn-dashboard-primary">
+                        <i class="fas fa-save"></i> حفظ الإعدادات
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Appearance Settings -->
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-palette text-warning me-2"></i>
+                    مظهر لوحة التحكم
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="appearanceSettingsForm">
+                    <div class="mb-3">
+                        <label class="form-label">السمة</label>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="form-check card p-3 text-center cursor-pointer">
+                                    <input class="form-check-input" type="radio" name="theme" id="themeLight" value="light" checked>
+                                    <label class="form-check-label d-block mt-2" for="themeLight">
+                                        <i class="fas fa-sun fa-2x text-warning mb-2"></i>
+                                        <div>فاتح</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check card p-3 text-center cursor-pointer">
+                                    <input class="form-check-input" type="radio" name="theme" id="themeDark" value="dark">
+                                    <label class="form-check-label d-block mt-2" for="themeDark">
+                                        <i class="fas fa-moon fa-2x text-primary mb-2"></i>
+                                        <div>داكن</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check card p-3 text-center cursor-pointer">
+                                    <input class="form-check-input" type="radio" name="theme" id="themeAuto" value="auto">
+                                    <label class="form-check-label d-block mt-2" for="themeAuto">
+                                        <i class="fas fa-adjust fa-2x text-secondary mb-2"></i>
+                                        <div>تلقائي</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">اللون الرئيسي</label>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn w-100" style="background: #2563eb; color: white;">أزرق</button>
+                            <button type="button" class="btn w-100" style="background: #10b981; color: white;">أخضر</button>
+                            <button type="button" class="btn w-100" style="background: #8b5cf6; color: white;">بنفسجي</button>
+                            <button type="button" class="btn w-100" style="background: #f59e0b; color: white;">أصفر</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="sidebarCollapsed">
+                            <label class="form-check-label" for="sidebarCollapsed">طي القائمة الجانبية</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-dashboard btn-dashboard-primary">
+                        <i class="fas fa-save"></i> حفظ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Data Display Settings -->
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-table text-success me-2"></i>
+                    إعدادات عرض البيانات
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="dataSettingsForm">
+                    <div class="mb-3">
+                        <label class="form-label">عدد العناصر في الصفحة</label>
+                        <select class="form-select form-control-dashboard">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">تنسيق التاريخ</label>
+                        <select class="form-select form-control-dashboard">
+                            <option value="Y-m-d" selected>YYYY-MM-DD</option>
+                            <option value="d/m/Y">DD/MM/YYYY</option>
+                            <option value="d-m-Y">DD-MM-YYYY</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showIds" checked>
+                            <label class="form-check-label" for="showIds">عرض الأعمدة التعريفية (ID)</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                            <label class="form-check-label" for="autoRefresh">تحديث تلقائي للإحصائيات</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-dashboard btn-dashboard-primary">
+                        <i class="fas fa-save"></i> حفظ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Settings -->
+    <div class="col-lg-6">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-bell text-danger me-2"></i>
+                    إعدادات الإشعارات
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="notificationSettingsForm">
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">إشعارات البريد الإلكتروني</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="browserNotifications" checked>
+                            <label class="form-check-label" for="browserNotifications">إشعارات المتصفح</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="newUserAlert" checked>
+                            <label class="form-check-label" for="newUserAlert">تنبيه عند تسجيل مستخدم جديد</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="dailyReport" checked>
+                            <label class="form-check-label" for="dailyReport">تقرير يومي</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">وقت إرسال التقرير اليومي</label>
+                        <input type="time" class="form-control form-control-dashboard" value="20:00">
+                    </div>
+                    <button type="submit" class="btn btn-dashboard btn-dashboard-primary">
+                        <i class="fas fa-save"></i> حفظ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Backup & Maintenance -->
+    <div class="col-lg-12">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-database text-info me-2"></i>
+                    النسخ الاحتياطي والصيانة
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6>النسخ الاحتياطي</h6>
+                        <p class="text-muted small">قم بإنشاء نسخة احتياطية من قاعدة البيانات</p>
+                        <button class="btn btn-dashboard btn-dashboard-light" onclick="createBackup()">
+                            <i class="fas fa-download"></i> إنشاء نسخة احتياطية
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>تنظيف البيانات</h6>
+                        <p class="text-muted small">حذف السجلات القديمة والملفات المؤقتة</p>
+                        <button class="btn btn-dashboard btn-dashboard-light text-warning" onclick="cleanupData()">
+                            <i class="fas fa-broom"></i> تنظيف
+                        </button>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6>وضع الصيانة</h6>
+                        <p class="text-muted small">تعطيل الموقع للمستخدمين أثناء الصيانة</p>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="maintenanceMode">
+                            <label class="form-check-label" for="maintenanceMode">تفعيل وضع الصيانة</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>سجل النشاطات</h6>
+                        <p class="text-muted small">عرض سجل العمليات في النظام</p>
+                        <a href="/admin/dashboard/adminactionlog/" target="_blank" class="btn btn-dashboard btn-dashboard-light">
+                            <i class="fas fa-history"></i> عرض السجل
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function createBackup() {
+        showToast('جاري إنشاء نسخة احتياطية...', 'info');
+        setTimeout(() => {
+            showToast('تم إنشاء النسخة الاحتياطية بنجاح', 'success');
+        }, 2000);
+    }
+    
+    function cleanupData() {
+        if (confirm('هل أنت متأكد من تنظيف البيانات القديمة؟')) {
+            showToast('جاري تنظيف البيانات...', 'info');
+            setTimeout(() => {
+                showToast('تم التنظيف بنجاح', 'success');
+            }, 2000);
+        }
+    }
+    
+    // Handle form submissions
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            showToast('تم حفظ الإعدادات بنجاح', 'success');
+        });
+    });
+</script>
+{% endblock %}

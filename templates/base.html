@@ -344,6 +344,34 @@
                             <i class="fas fa-book-quran me-1"></i> المصحف
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'courses:list' %}">
+                            <i class="fas fa-graduation-cap me-1"></i> المقررات
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-bar me-1"></i> التقارير
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% if user.is_student %}
+                            <li><a class="dropdown-item" href="{% url 'reports:my_reports' %}">
+                                <i class="fas fa-user-chart me-2"></i> تقاريري
+                            </a></li>
+                            {% endif %}
+                            {% if user.is_admin or user.is_sheikh %}
+                            <li><a class="dropdown-item" href="{% url 'reports:report_list' %}">
+                                <i class="fas fa-clipboard-list me-2"></i> تقارير الطلاب
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:certificate_list' %}">
+                                <i class="fas fa-award me-2"></i> الشهادات
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:template_list' %}">
+                                <i class="fas fa-certificate me-2"></i> قوالب الشهادات
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
@@ -351,13 +379,27 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="fas fa-bell me-1"></i>
-                            <span class="badge bg-danger rounded-pill">3</span>
+                            {% if unread_notifications_count > 0 %}
+                            <span class="badge bg-danger rounded-pill">{{ unread_notifications_count }}</span>
+                            {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#">إشعار جديد 1</a></li>
-                            <li><a class="dropdown-item" href="#">إشعار جديد 2</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center" href="#">عرض الكل</a></li>
+                            {% if recent_notifications %}
+                                {% for notification in recent_notifications %}
+                                <li>
+                                    <a class="dropdown-item {% if not notification.is_read %}fw-bold{% endif %}" href="{% url 'courses:notifications' %}">
+                                        <i class="fas fa-circle me-1 {% if not notification.is_read %}text-primary{% else %}text-muted{% endif %}" style="font-size: 8px;"></i>
+                                        {{ notification.title|truncatechars:30 }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                            {% else %}
+                                <li><span class="dropdown-item text-muted">لا توجد إشعارات</span></li>
+                            {% endif %}
+                            <li><a class="dropdown-item text-center text-primary" href="{% url 'courses:notifications' %}">
+                                <i class="fas fa-bell me-1"></i> عرض كل الإشعارات
+                            </a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -442,7 +484,7 @@
             </div>
             <hr class="my-4 bg-secondary">
             <div class="text-center text-muted">
-                <small>&copy; 2024 ترتيل - جميع الحقوق محفوظة</small>
+                <small>&copy; 2025 ترتيل - جميع الحقوق محفوظة</small>
             </div>
         </div>
     </footer>

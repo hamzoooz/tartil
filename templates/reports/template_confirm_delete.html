@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}تأكيد الحذف - ترتيل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-2"></i>تأكيد الحذف
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-trash-alt fa-4x text-danger mb-4"></i>
+                    <h4>هل أنت متأكد من حذف هذا القالب؟</h4>
+                    <p class="text-muted">{{ template.name }}</p>
+                    <p class="text-danger small">هذا الإجراء لا يمكن التراجع عنه!</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>نعم، احذف
+                        </button>
+                        <a href="{% url 'reports:template_list' %}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-times me-2"></i>إلغاء
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
