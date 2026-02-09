@@ -24,6 +24,7 @@ urlpatterns = [
     
     # التقارير
     path('reports/', views.ReportsView.as_view(), name='reports'),
+    path('reports/export/', views.ReportExportView.as_view(), name='reports_export'),
     
     # الإعدادات
     path('settings/', views.SystemSettingsView.as_view(), name='settings'),

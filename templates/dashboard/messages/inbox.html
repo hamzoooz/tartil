@@ -1,5 +1,6 @@
 {% extends 'dashboard/base.html' %}
 {% load i18n %}
+{% load message_tags %}
 
 {% block title %}الرسائل الواردة{% endblock %}
 {% block page_title %}صندوق الوارد{% endblock %}
@@ -72,7 +73,7 @@
         <div class="list-group list-group-flush">
             {% for message in messages %}
             <a href="{% url 'dashboard:messages_detail' message.pk %}" 
-               class="list-group-item list-group-item-action {% if not message.is_read_by request.user %}bg-light border-start border-4 border-primary{% endif %}">
+               class="list-group-item list-group-item-action {% if not message|is_read_by:request.user %}bg-light border-start border-4 border-primary{% endif %}">
                 <div class="d-flex w-100 justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
                         <div class="me-3">
@@ -85,9 +86,9 @@
                             {% endif %}
                         </div>
                         <div>
-                            <h6 class="mb-1 {% if not message.is_read_by request.user %}fw-bold{% endif %}">
+                            <h6 class="mb-1 {% if not message|is_read_by:request.user %}fw-bold{% endif %}">
                                 {{ message.subject }}
-                                {% if not message.is_read_by request.user %}
+                                {% if not message|is_read_by:request.user %}
                                     <span class="badge bg-primary ms-2">جديد</span>
                                 {% endif %}
                             </h6>

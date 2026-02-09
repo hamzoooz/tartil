@@ -308,12 +308,9 @@
 
 <!-- Export Buttons -->
 <div class="d-flex justify-content-end gap-2 mt-4">
-    <button class="btn btn-dashboard btn-dashboard-light" onclick="exportReport('pdf')">
-        <i class="fas fa-file-pdf text-danger"></i> تصدير PDF
-    </button>
-    <button class="btn btn-dashboard btn-dashboard-light" onclick="exportReport('excel')">
+    <a href="{% url 'dashboard:reports_export' %}?type={{ report_type }}&range={{ date_range }}" class="btn btn-dashboard btn-dashboard-light">
         <i class="fas fa-file-excel text-success"></i> تصدير Excel
-    </button>
+    </a>
     <button class="btn btn-dashboard btn-dashboard-primary" onclick="printReport()">
         <i class="fas fa-print"></i> طباعة
     </button>
@@ -364,10 +361,10 @@
     new Chart(document.getElementById('userGrowthChart'), {
         type: 'line',
         data: {
-            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+            labels: {{ report_data.user_growth_labels|safe|default:'[]' }},
             datasets: [{
                 label: 'المستخدمين',
-                data: [12, 19, 15, 25, 22, 30],
+                data: {{ report_data.user_growth_data|safe|default:'[]' }},
                 borderColor: '#2563eb',
                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
                 fill: true,
@@ -384,10 +381,10 @@
     new Chart(document.getElementById('activityChart'), {
         type: 'bar',
         data: {
-            labels: ['سبت', 'أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'],
+            labels: {{ report_data.activity_labels|safe|default:'[]' }},
             datasets: [{
                 label: 'الجلسات',
-                data: [5, 8, 12, 10, 15, 8, 3],
+                data: {{ report_data.activity_data|safe|default:'[]' }},
                 backgroundColor: '#10b981',
                 borderRadius: 8
             }]

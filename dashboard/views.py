@@ -525,6 +525,23 @@ class ReportsView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
     
     def get_overview_report(self, start_date, end_date):
         """تقرير عام"""
+        # User growth by month (last 6 months)
+        from django.db.models.functions import TruncMonth
+        user_growth = User.objects.filter(
+            date_joined__date__range=[start_date, end_date]
+        ).annotate(
+            month=TruncMonth('date_joined')
+        ).values('month').annotate(
+            count=Count('id')
+        ).order_by('month')
+        
+        # Activity by day of week
+        activity_by_day = Session.objects.filter(
+            date__range=[start_date, end_date]
+        ).values('date').annotate(
+            count=Count('id')
+        ).order_by('date')[:30]
+        
         return {
             'new_users': User.objects.filter(date_joined__date__range=[start_date, end_date]).count(),
             'new_students': User.objects.filter(
@@ -540,6 +557,11 @@ class ReportsView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
             'total_attendance': Attendance.objects.filter(
                 session__date__range=[start_date, end_date]
             ).count(),
+            # Chart data
+            'user_growth_labels': [u['month'].strftime('%Y-%m') for u in user_growth] if user_growth else [],
+            'user_growth_data': [u['count'] for u in user_growth] if user_growth else [],
+            'activity_labels': [a['date'].strftime('%m-%d') for a in activity_by_day] if activity_by_day else [],
+            'activity_data': [a['count'] for a in activity_by_day] if activity_by_day else [],
         }
     
     def get_students_report(self, start_date, end_date):
@@ -1449,3 +1471,158 @@ class ExportCreatedAccountsView(LoginRequiredMixin, AdminRequiredMixin, View):
         )
         response['Content-Disposition'] = f'attachment; filename="created_accounts_{job_id}.xlsx"'
         return response
+
+
+
+class ReportExportView(LoginRequiredMixin, AdminRequiredMixin, View):
+    """تصدير التقارير بصيغة Excel"""
+    
+    def get(self, request):
+        try:
+            import pandas as pd
+            from io import BytesIO
+        except ImportError:
+            return HttpResponse(_('مكتبة pandas غير مثبتة'), status=500)
+        
+        report_type = request.GET.get('type', 'overview')
+        date_range = request.GET.get('range', 'month')
+        
+        # حساب نطاق التاريخ
+        today = timezone.now().date()
+        if date_range == 'today':
+            start_date, end_date = today, today
+        elif date_range == 'week':
+            start_date, end_date = today - timedelta(days=7), today
+        elif date_range == 'month':
+            start_date, end_date = today - timedelta(days=30), today
+        elif date_range == 'quarter':
+            start_date, end_date = today - timedelta(days=90), today
+        elif date_range == 'year':
+            start_date, end_date = today - timedelta(days=365), today
+        else:
+            start = request.GET.get('start_date')
+            end = request.GET.get('end_date')
+            if start and end:
+                start_date = datetime.strptime(start, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end, '%Y-%m-%d').date()
+            else:
+                start_date, end_date = today - timedelta(days=30), today
+        
+        # إنشاء ملف Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            
+            if report_type == 'overview':
+                self._export_overview(writer, start_date, end_date)
+            elif report_type == 'students':
+                self._export_students(writer, start_date, end_date)
+            elif report_type == 'halaqat':
+                self._export_halaqat(writer, start_date, end_date)
+            elif report_type == 'recitations':
+                self._export_recitations(writer, start_date, end_date)
+            else:
+                self._export_overview(writer, start_date, end_date)
+        
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="report_{report_type}_{start_date}.xlsx"'
+        return response
+    
+    def _export_overview(self, writer, start_date, end_date):
+        """تصدير نظرة عامة"""
+        import pandas as pd
+        
+        data = {
+            'المعيار': [
+                'مستخدمين جدد',
+                'طلاب جدد',
+                'جلسات منعقدة',
+                'تسميعات',
+                'متوسط الدرجات',
+                'سجلات حضور'
+            ],
+            'القيمة': [
+                User.objects.filter(date_joined__date__range=[start_date, end_date]).count(),
+                User.objects.filter(user_type='student', date_joined__date__range=[start_date, end_date]).count(),
+                Session.objects.filter(date__range=[start_date, end_date]).count(),
+                RecitationRecord.objects.filter(created_at__date__range=[start_date, end_date]).count(),
+                round(RecitationRecord.objects.filter(created_at__date__range=[start_date, end_date]).aggregate(avg=Avg('grade'))['avg'] or 0, 2),
+                Attendance.objects.filter(session__date__range=[start_date, end_date]).count()
+            ]
+        }
+        
+        df = pd.DataFrame(data)
+        df.to_excel(writer, index=False, sheet_name='Overview')
+    
+    def _export_students(self, writer, start_date, end_date):
+        """تصدير بيانات الطلاب"""
+        import pandas as pd
+        
+        students = User.objects.filter(user_type='student').annotate(
+            sessions_count=Count('attendances', filter=Q(attendances__session__date__range=[start_date, end_date])),
+            recitations_count=Count('recitation_records', filter=Q(recitation_records__created_at__date__range=[start_date, end_date])),
+            avg_grade=Avg('recitation_records__grade', filter=Q(recitation_records__created_at__date__range=[start_date, end_date])),
+            total_pages=Sum('recitation_records__pages_count', filter=Q(recitation_records__created_at__date__range=[start_date, end_date]))
+        ).order_by('-recitations_count')
+        
+        data = []
+        for student in students:
+            data.append({
+                'الاسم': student.get_full_name() or student.username,
+                'اسم المستخدم': student.username,
+                'البريد': student.email,
+                'الجلسات': student.sessions_count,
+                'التسميعات': student.recitations_count,
+                'متوسط الدرجة': round(student.avg_grade or 0, 2),
+                'الصفحات': student.total_pages or 0
+            })
+        
+        df = pd.DataFrame(data)
+        df.to_excel(writer, index=False, sheet_name='Students')
+    
+    def _export_halaqat(self, writer, start_date, end_date):
+        """تصدير بيانات الحلقات"""
+        import pandas as pd
+        
+        halaqat = Halaqa.objects.annotate(
+            sessions_count=Count('sessions', filter=Q(sessions__date__range=[start_date, end_date])),
+            students_count=Count('enrollments', filter=Q(enrollments__status='active'))
+        ).order_by('-sessions_count')
+        
+        data = []
+        for halaqa in halaqat:
+            data.append({
+                'اسم الحلقة': halaqa.name,
+                'الشيخ': halaqa.sheikh.get_full_name() if halaqa.sheikh else '-',
+                'عدد الطلاب': halaqa.students_count,
+                'الجلسات': halaqa.sessions_count,
+                'الحالة': halaqa.get_status_display()
+            })
+        
+        df = pd.DataFrame(data)
+        df.to_excel(writer, index=False, sheet_name='Halaqat')
+    
+    def _export_recitations(self, writer, start_date, end_date):
+        """تصدير بيانات التسميعات"""
+        import pandas as pd
+        
+        recitations = RecitationRecord.objects.filter(
+            created_at__date__range=[start_date, end_date]
+        ).select_related('student', 'surah_start')
+        
+        data = []
+        for rec in recitations:
+            data.append({
+                'الطالب': rec.student.get_full_name() if rec.student else '-',
+                'السورة': rec.surah_start.name_arabic if rec.surah_start else '-',
+                'النوع': rec.get_recitation_type_display(),
+                'الدرجة': rec.grade,
+                'التاريخ': rec.created_at.strftime('%Y-%m-%d')
+            })
+        
+        df = pd.DataFrame(data)
+        df.to_excel(writer, index=False, sheet_name='Recitations')

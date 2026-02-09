@@ -87,9 +87,26 @@ class NotificationCalendarDataView(LoginRequiredMixin, AdminRequiredMixin, View)
         queryset = ScheduledNotification.objects.all()
         
         if start and end:
-            queryset = queryset.filter(
-                scheduled_datetime__date__range=[start, end]
-            )
+            # Parse ISO format dates (handle timezone offset)
+            from datetime import datetime
+            try:
+                # Handle both ISO format with timezone and simple date format
+                if 'T' in start:
+                    start_date = datetime.fromisoformat(start.replace('Z', '+00:00')).date()
+                else:
+                    start_date = datetime.strptime(start, '%Y-%m-%d').date()
+                
+                if 'T' in end:
+                    end_date = datetime.fromisoformat(end.replace('Z', '+00:00')).date()
+                else:
+                    end_date = datetime.strptime(end, '%Y-%m-%d').date()
+                
+                queryset = queryset.filter(
+                    scheduled_datetime__date__range=[start_date, end_date]
+                )
+            except (ValueError, TypeError):
+                # If parsing fails, return all notifications
+                pass
         
         events = []
         for notification in queryset:
