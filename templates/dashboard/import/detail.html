@@ -1,0 +1,222 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}تفاصيل عملية الاستيراد #{{ job.id }}{% endblock %}
+{% block page_title %}تفاصيل عملية الاستيراد #{{ job.id }}{% endblock %}
+
+{% block content %}
+<!-- Job Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-import text-primary me-2"></i>
+                    معلومات العملية
+                </h5>
+                <div>
+                    <a href="{% url 'dashboard:excel_import' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-arrow-right me-2"></i>
+                        العودة
+                    </a>
+                    {% if job.created_users %}
+                    <a href="{% url 'dashboard:export_created_accounts' job.id %}" class="btn btn-sm btn-success">
+                        <i class="fas fa-download me-2"></i>
+                        تحميل الحسابات
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <small class="text-muted d-block">نوع الاستيراد</small>
+                        <strong>{{ job.get_import_type_display }}</strong>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <small class="text-muted d-block">اسم الملف</small>
+                        <strong>{{ job.file_name }}</strong>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <small class="text-muted d-block">الحالة</small>
+                        <span class="badge 
+                            {% if job.status == 'completed' %}bg-success
+                            {% elif job.status == 'partial' %}bg-warning
+                            {% elif job.status == 'failed' %}bg-danger
+                            {% else %}bg-secondary{% endif %}">
+                            {{ job.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <small class="text-muted d-block">تاريخ الإنشاء</small>
+                        <strong>{{ job.created_at|date:"Y-m-d H:i" }}</strong>
+                    </div>
+                </div>
+                
+                {% if job.started_at and job.completed_at %}
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">وقت البدء</small>
+                        <strong>{{ job.started_at|date:"Y-m-d H:i:s" }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">وقت الإكمال</small>
+                        <strong>{{ job.completed_at|date:"Y-m-d H:i:s" }}</strong>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Summary -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon secondary">
+                <i class="fas fa-list-ol"></i>
+            </div>
+            <div class="stat-value">{{ job.total_rows }}</div>
+            <div class="stat-label">إجمالي الصفوف</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value text-success">{{ job.success_count }}</div>
+            <div class="stat-label">تم بنجاح</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-value text-danger">{{ job.failed_count }}</div>
+            <div class="stat-label">فشل</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-minus-circle"></i>
+            </div>
+            <div class="stat-value text-warning">{{ job.skipped_count }}</div>
+            <div class="stat-label">تم التخطي</div>
+        </div>
+    </div>
+</div>
+
+<!-- Created Halaqat -->
+{% if job.created_halaqat %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-book-open text-success me-2"></i>
+                    الحلقات المنشأة
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for halaqa in job.created_halaqat %}
+                    <div class="col-md-4 mb-2">
+                        <div class="p-3 bg-light rounded">
+                            <i class="fas fa-mosque text-success me-2"></i>
+                            {{ halaqa.name }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Created Users -->
+{% if job.created_users %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-users text-primary me-2"></i>
+                    الحسابات المنشأة
+                    <span class="badge bg-primary ms-2">{{ job.created_users|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الاسم</th>
+                                <th>اسم المستخدم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>كلمة المرور</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in job.created_users %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ user.name }}</td>
+                                <td><code>{{ user.username }}</code></td>
+                                <td>{{ user.email }}</td>
+                                <td><code class="text-danger">{{ user.password }}</code></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Errors -->
+{% if job.errors_log %}
+<div class="row">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                    سجل الأخطاء
+                    <span class="badge bg-danger ms-2">{{ job.errors_log|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>الصف</th>
+                                <th>الاسم</th>
+                                <th>الخطأ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for error in job.errors_log %}
+                            <tr>
+                                <td>{{ error.row }}</td>
+                                <td>{{ error.name }}</td>
+                                <td class="text-danger">{{ error.error }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}الرسائل الواردة{% endblock %}
+{% block page_title %}صندوق الوارد{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card bg-primary-subtle">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon primary">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <div class="ms-3">
+                    <div class="stat-value text-primary" style="font-size: 1.5rem;">{{ unread_count }}</div>
+                    <div class="stat-label">رسائل غير مقروءة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon success">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <div class="ms-3">
+                    <div class="stat-value" style="font-size: 1.5rem;">{{ sent_count }}</div>
+                    <div class="stat-label">رسائل مرسلة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon secondary">
+                    <i class="fas fa-archive"></i>
+                </div>
+                <div class="ms-3">
+                    <div class="stat-value" style="font-size: 1.5rem;">{{ archived_count }}</div>
+                    <div class="stat-label">رسائل مؤرشفة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="mb-4">
+    <a href="{% url 'dashboard:messages_compose' %}" class="btn btn-dashboard btn-dashboard-primary">
+        <i class="fas fa-plus"></i>
+        رسالة جديدة
+    </a>
+    <a href="{% url 'dashboard:messages_sent' %}" class="btn btn-dashboard btn-dashboard-light">
+        <i class="fas fa-paper-plane"></i>
+        المرسلة
+    </a>
+</div>
+
+<!-- Messages List -->
+<div class="dashboard-card">
+    <div class="card-header">
+        <h5 class="card-title">
+            <i class="fas fa-inbox text-primary me-2"></i>
+            الرسائل الواردة
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for message in messages %}
+            <a href="{% url 'dashboard:messages_detail' message.pk %}" 
+               class="list-group-item list-group-item-action {% if not message.is_read_by request.user %}bg-light border-start border-4 border-primary{% endif %}">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            {% if message.sender.profile_image %}
+                                <img src="{{ message.sender.profile_image.url }}" alt="" class="rounded-circle" width="50" height="50">
+                            {% else %}
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    {{ message.sender.first_name|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="mb-1 {% if not message.is_read_by request.user %}fw-bold{% endif %}">
+                                {{ message.subject }}
+                                {% if not message.is_read_by request.user %}
+                                    <span class="badge bg-primary ms-2">جديد</span>
+                                {% endif %}
+                            </h6>
+                            <p class="mb-0 text-muted small">
+                                من: {{ message.sender.get_full_name|default:message.sender.username }}
+                                <span class="mx-2">|</span>
+                                {{ message.created_at|timesince }} ago
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        {% if message.priority == 'urgent' %}
+                            <span class="badge bg-danger">عاجل</span>
+                        {% elif message.priority == 'high' %}
+                            <span class="badge bg-warning">عالي</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">لا توجد رسائل</h5>
+                <p class="text-muted">صندوق الوارد فارغ</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination-dashboard">
+        {% if page_obj.has_previous %}
+        <li>
+            <a href="?page={{ page_obj.previous_page_number }}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="active"><span>{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li><a href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li>
+            <a href="?page={{ page_obj.next_page_number }}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

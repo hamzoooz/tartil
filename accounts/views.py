@@ -56,7 +56,7 @@ def register(request):
                 SheikhProfile.objects.create(user=user)
 
             login(request, user)
-            messages.success(request, 'تم إنشاء حسابك بنجاح! مرحباً بك في ترتيل')
+            messages.success(request, 'تم إنشاء حسابك بنجاح! مرحباً بك في دورات القرآن')
             return redirect('core:dashboard')
     else:
         form = UserRegistrationForm()

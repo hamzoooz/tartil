@@ -2,7 +2,7 @@
 import multiprocessing
 
 # Server socket
-bind = "0.0.0.0:8000"
+bind = "127.0.0.1:8005"
 backlog = 2048
 
 # Worker processes
@@ -23,7 +23,7 @@ accesslog = "-"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 
 # Process naming
-proc_name = "tartil"
+proc_name = "qurancourses"
 
 # Server mechanics
 daemon = False

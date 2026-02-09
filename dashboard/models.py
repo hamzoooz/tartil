@@ -5,6 +5,7 @@ Dashboard Models for Advanced Admin Control
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 import json
 
 
@@ -277,3 +278,327 @@ class BulkAction(models.Model):
     
     def __str__(self):
         return self.name
+
+
+# ==================== نظام الرسائل والإشعارات ====================
+
+class Message(models.Model):
+    """نموذج الرسائل بين المستخدمين"""
+    
+    class MessageType(models.TextChoices):
+        DIRECT = 'direct', _('رسالة مباشرة')
+        BROADCAST = 'broadcast', _('رسالة جماعية')
+        SYSTEM = 'system', _('رسالة نظام')
+        ALERT = 'alert', _('تنبيه')
+    
+    class Priority(models.TextChoices):
+        LOW = 'low', _('منخفض')
+        NORMAL = 'normal', _('عادي')
+        HIGH = 'high', _('عالي')
+        URGENT = 'urgent', _('عاجل')
+    
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_messages',
+        verbose_name=_('المرسل')
+    )
+    recipients = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='received_messages',
+        verbose_name=_('المستلمون'),
+        blank=True
+    )
+    
+    message_type = models.CharField(
+        _('نوع الرسالة'),
+        max_length=20,
+        choices=MessageType.choices,
+        default=MessageType.DIRECT
+    )
+    priority = models.CharField(
+        _('الأولوية'),
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.NORMAL
+    )
+    
+    subject = models.CharField(_('الموضوع'), max_length=200)
+    content = models.TextField(_('المحتوى'))
+    
+    # حالة القراءة
+    read_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='read_messages',
+        verbose_name=_('تم القراءة بواسطة'),
+        blank=True
+    )
+    
+    # مرفقات
+    attachments = models.JSONField(_('المرفقات'), default=list, blank=True)
+    
+    # التحكم
+    is_draft = models.BooleanField(_('مسودة'), default=False)
+    is_archived = models.BooleanField(_('مؤرشفة'), default=False)
+    expires_at = models.DateTimeField(_('تاريخ الانتهاء'), null=True, blank=True)
+    
+    created_at = models.DateTimeField(_('تاريخ الإرسال'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('تاريخ التحديث'), auto_now=True)
+    
+    class Meta:
+        verbose_name = _('رسالة')
+        verbose_name_plural = _('الرسائل')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.subject} - {self.sender}"
+    
+    def is_read_by(self, user):
+        """هل قرأها المستخدم؟"""
+        return self.read_by.filter(id=user.id).exists()
+    
+    def mark_as_read(self, user):
+        """تحديد كمقروءة"""
+        if not self.is_read_by(user):
+            self.read_by.add(user)
+    
+    @property
+    def unread_count(self):
+        """عدد غير المقروءة"""
+        if self.message_type == self.MessageType.BROADCAST:
+            return self.recipients.count() - self.read_by.count()
+        return 0
+
+
+class Notification(models.Model):
+    """نموذج الإشعارات"""
+    
+    class NotificationType(models.TextChoices):
+        SESSION = 'session', _('جلسة')
+        RECITATION = 'recitation', _('تسميع')
+        ENROLLMENT = 'enrollment', _('تسجيل')
+        CERTIFICATE = 'certificate', _('شهادة')
+        BADGE = 'badge', _('وسام')
+        POINTS = 'points', _('نقاط')
+        SYSTEM = 'system', _('نظام')
+        REMINDER = 'reminder', _('تذكير')
+        ALERT = 'alert', _('تنبيه')
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='dashboard_notifications',
+        verbose_name=_('المستخدم')
+    )
+    notification_type = models.CharField(
+        _('نوع الإشعار'),
+        max_length=20,
+        choices=NotificationType.choices,
+        default=NotificationType.SYSTEM
+    )
+    
+    title = models.CharField(_('العنوان'), max_length=200)
+    message = models.TextField(_('الرسالة'))
+    
+    # رابط للتنقل
+    link = models.CharField(_('الرابط'), max_length=500, blank=True)
+    link_text = models.CharField(_('نص الرابط'), max_length=100, default=_('عرض'))
+    
+    # البيانات الإضافية
+    data = models.JSONField(_('بيانات إضافية'), default=dict, blank=True)
+    
+    # الحالة
+    is_read = models.BooleanField(_('مقروء'), default=False)
+    is_important = models.BooleanField(_('مهم'), default=False)
+    
+    # التنبيه
+    shown_in_ui = models.BooleanField(_('ظهر في الواجهة'), default=False)
+    email_sent = models.BooleanField(_('أُرسل بريد'), default=False)
+    push_sent = models.BooleanField(_('أُرسل Push'), default=False)
+    
+    created_at = models.DateTimeField(_('تاريخ الإنشاء'), auto_now_add=True)
+    read_at = models.DateTimeField(_('تاريخ القراءة'), null=True, blank=True)
+    
+    class Meta:
+        verbose_name = _('إشعار')
+        verbose_name_plural = _('الإشعارات')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} - {self.user.username}"
+    
+    def mark_as_read(self):
+        """تحديد كمقروء"""
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=['is_read', 'read_at'])
+
+
+class Alert(models.Model):
+    """التنبيهات المهمة للإدارة"""
+    
+    class AlertType(models.TextChoices):
+        INFO = 'info', _('معلومات')
+        WARNING = 'warning', _('تحذير')
+        ERROR = 'error', _('خطأ')
+        SUCCESS = 'success', _('نجاح')
+    
+    alert_type = models.CharField(
+        _('نوع التنبيه'),
+        max_length=20,
+        choices=AlertType.choices,
+        default=AlertType.INFO
+    )
+    
+    title = models.CharField(_('العنوان'), max_length=200)
+    message = models.TextField(_('الرسالة'))
+    
+    # المستهدفون
+    target_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='alerts',
+        verbose_name=_('المستخدمون المستهدفون'),
+        blank=True
+    )
+    target_roles = models.JSONField(
+        _('الأدوار المستهدفة'),
+        default=list,
+        blank=True,
+        help_text=_('مثل: ["admin", "sheikh"]')
+    )
+    
+    # التحكم
+    is_active = models.BooleanField(_('نشط'), default=True)
+    show_once = models.BooleanField(_('إظهار مرة واحدة'), default=False)
+    dismissible = models.BooleanField(_('قابل للإغلاق'), default=True)
+    
+    # المدة
+    start_date = models.DateTimeField(_('تاريخ البدء'), default=timezone.now)
+    end_date = models.DateTimeField(_('تاريخ الانتهاء'), null=True, blank=True)
+    
+    # الإحصائيات
+    views_count = models.PositiveIntegerField(_('عدد المشاهدات'), default=0)
+    dismissed_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='dismissed_alerts',
+        verbose_name=_('تم إغلاقه بواسطة'),
+        blank=True
+    )
+    
+    created_at = models.DateTimeField(_('تاريخ الإنشاء'), auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_alerts',
+        verbose_name=_('تم الإنشاء بواسطة')
+    )
+    
+    class Meta:
+        verbose_name = _('تنبيه')
+        verbose_name_plural = _('التنبيهات')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.title
+    
+    def is_visible_to(self, user):
+        """هل التنبيه مرئي للمستخدم؟"""
+        if not self.is_active:
+            return False
+        if self.end_date and timezone.now() > self.end_date:
+            return False
+        if self.show_once and self.dismissed_by.filter(id=user.id).exists():
+            return False
+        if self.target_users.exists() and not self.target_users.filter(id=user.id).exists():
+            return False
+        if self.target_roles and user.user_type not in self.target_roles:
+            return False
+        return True
+    
+    def dismiss(self, user):
+        """إغلاق التنبيه"""
+        self.dismissed_by.add(user)
+
+
+# ==================== استيراد Excel ====================
+
+class ExcelImportJob(models.Model):
+    """سجل عمليات استيراد Excel"""
+    
+    class ImportType(models.TextChoices):
+        STUDENTS = 'students', _('طلاب')
+        SHEIKHS = 'sheikhs', _('مشايخ')
+        HALAQAT = 'halaqat', _('حلقات')
+    
+    class Status(models.TextChoices):
+        PENDING = 'pending', _('قيد الانتظار')
+        PROCESSING = 'processing', _('جاري المعالجة')
+        COMPLETED = 'completed', _('مكتمل')
+        PARTIAL = 'partial', _('مكتمل جزئياً')
+        FAILED = 'failed', _('فشل')
+    
+    import_type = models.CharField(
+        _('نوع الاستيراد'),
+        max_length=20,
+        choices=ImportType.choices
+    )
+    
+    file_name = models.CharField(_('اسم الملف'), max_length=255)
+    file_path = models.FileField(_('الملف'), upload_to='imports/')
+    
+    status = models.CharField(
+        _('الحالة'),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    
+    # الإعدادات
+    create_accounts = models.BooleanField(_('إنشاء حسابات'), default=True)
+    auto_distribute = models.BooleanField(_('توزيع تلقائي'), default=False)
+    distribution_count = models.PositiveIntegerField(
+        _('عدد الحلقات للتوزيع'),
+        default=10,
+        help_text=_('عدد الحلقات التي سيتم توزيع الطلاب عليها')
+    )
+    
+    # النتائج
+    total_rows = models.PositiveIntegerField(_('إجمالي الصفوف'), default=0)
+    success_count = models.PositiveIntegerField(_('النجاح'), default=0)
+    failed_count = models.PositiveIntegerField(_('الفشل'), default=0)
+    skipped_count = models.PositiveIntegerField(_('التخطي'), default=0)
+    
+    errors_log = models.JSONField(_('سجل الأخطاء'), default=list, blank=True)
+    created_users = models.JSONField(_('المستخدمون المنشأون'), default=list, blank=True)
+    created_halaqat = models.JSONField(_('الحلقات المنشأة'), default=list, blank=True)
+    
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='import_jobs',
+        verbose_name=_('تم الإنشاء بواسطة')
+    )
+    
+    started_at = models.DateTimeField(_('تاريخ البدء'), null=True, blank=True)
+    completed_at = models.DateTimeField(_('تاريخ الإكمال'), null=True, blank=True)
+    created_at = models.DateTimeField(_('تاريخ الإنشاء'), auto_now_add=True)
+    
+    class Meta:
+        verbose_name = _('عملية استيراد Excel')
+        verbose_name_plural = _('عمليات استيراد Excel')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.get_import_type_display()} - {self.file_name}"
+    
+    @property
+    def duration(self):
+        """مدة المعالجة"""
+        if self.started_at and self.completed_at:
+            delta = self.completed_at - self.started_at
+            return delta.total_seconds()
+        return None

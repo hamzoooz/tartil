@@ -1,0 +1,213 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}الإشعارات{% endblock %}
+{% block page_title %}الإشعارات{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="stat-card bg-danger-subtle">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon danger">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="ms-3">
+                    <div class="stat-value text-danger" style="font-size: 1.5rem;">{{ unread_count }}</div>
+                    <div class="stat-label">إشعارات غير مقروءة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card bg-warning-subtle">
+            <div class="d-flex align-items-center">
+                <div class="stat-icon warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="ms-3">
+                    <div class="stat-value text-warning" style="font-size: 1.5rem;">{{ important_count }}</div>
+                    <div class="stat-label">إشعارات مهمة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <button class="btn btn-dashboard btn-dashboard-primary" onclick="markAllAsRead()">
+            <i class="fas fa-check-double me-2"></i>
+            تحديد الكل كمقروء
+        </button>
+    </div>
+    <div>
+        <select class="form-select d-inline-block w-auto" onchange="filterByType(this.value)">
+            <option value="">جميع الأنواع</option>
+            {% for type_key, type_label in notification_types %}
+            <option value="{{ type_key }}" {% if request.GET.type == type_key %}selected{% endif %}>{{ type_label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- Notifications List -->
+<div class="dashboard-card">
+    <div class="card-header">
+        <h5 class="card-title">
+            <i class="fas fa-bell text-warning me-2"></i>
+            قائمة الإشعارات
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for notification in notifications %}
+            <div class="list-group-item {% if not notification.is_read %}bg-light border-start border-4 border-warning{% endif %}">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center
+                                {% if notification.notification_type == 'session' %}bg-info-subtle text-info
+                                {% elif notification.notification_type == 'recitation' %}bg-success-subtle text-success
+                                {% elif notification.notification_type == 'badge' %}bg-warning-subtle text-warning
+                                {% elif notification.notification_type == 'certificate' %}bg-primary-subtle text-primary
+                                {% else %}bg-secondary-subtle text-secondary{% endif %}"
+                                style="width: 50px; height: 50px;">
+                                {% if notification.notification_type == 'session' %}
+                                    <i class="fas fa-calendar"></i>
+                                {% elif notification.notification_type == 'recitation' %}
+                                    <i class="fas fa-microphone"></i>
+                                {% elif notification.notification_type == 'badge' %}
+                                    <i class="fas fa-medal"></i>
+                                {% elif notification.notification_type == 'certificate' %}
+                                    <i class="fas fa-certificate"></i>
+                                {% else %}
+                                    <i class="fas fa-bell"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 {% if not notification.is_read %}fw-bold{% endif %}">
+                                {{ notification.title }}
+                                {% if notification.is_important %}
+                                    <span class="badge bg-warning ms-2">مهم</span>
+                                {% endif %}
+                                {% if not notification.is_read %}
+                                    <span class="badge bg-danger ms-2">جديد</span>
+                                {% endif %}
+                            </h6>
+                            <p class="mb-1">{{ notification.message }}</p>
+                            <small class="text-muted">
+                                <i class="far fa-clock me-1"></i>
+                                {{ notification.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        {% if not notification.is_read %}
+                        <button class="btn btn-sm btn-outline-primary mb-1" onclick="markAsRead({{ notification.id }})">
+                            <i class="fas fa-check"></i>
+                            تحديد كمقروء
+                        </button>
+                        {% endif %}
+                        {% if notification.link %}
+                        <a href="{{ notification.link }}" class="btn btn-sm btn-light d-block">
+                            {{ notification.link_text }}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">لا توجد إشعارات</h5>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination-dashboard">
+        {% if page_obj.has_previous %}
+        <li>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="active"><span>{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li><a href="?page={{ num }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li>
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAsRead(notificationId) {
+    fetch(`/dashboard/notifications/${notificationId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('تم تحديد الإشعار كمقروء', 'success');
+            location.reload();
+        }
+    })
+    .catch(error => {
+        showToast('حدث خطأ', 'error');
+    });
+}
+
+function markAllAsRead() {
+    fetch('/dashboard/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            location.reload();
+        }
+    })
+    .catch(error => {
+        showToast('حدث خطأ', 'error');
+    });
+}
+
+function filterByType(type) {
+    if (type) {
+        window.location.href = `?type=${type}`;
+    } else {
+        window.location.href = '?';
+    }
+}
+</script>
+{% endblock %}

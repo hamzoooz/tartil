@@ -1,0 +1,86 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ message.subject }}{% endblock %}
+{% block page_title %}عرض الرسالة{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-envelope text-primary me-2"></i>
+                    {{ message.subject }}
+                </h5>
+                <div>
+                    <a href="{% url 'dashboard:messages_inbox' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-arrow-right"></i>
+                        العودة للوارد
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Message Header -->
+                <div class="d-flex justify-content-between align-items-start mb-4 pb-4 border-bottom">
+                    <div class="d-flex align-items-center">
+                        {% if message.sender.profile_image %}
+                            <img src="{{ message.sender.profile_image.url }}" alt="" class="rounded-circle me-3" width="60" height="60">
+                        {% else %}
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                                {{ message.sender.first_name|first }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-1">{{ message.sender.get_full_name|default:message.sender.username }}</h6>
+                            <p class="mb-0 text-muted">{{ message.sender.get_user_type_display }}</p>
+                            <small class="text-muted">
+                                <i class="far fa-clock me-1"></i>
+                                {{ message.created_at|date:"Y-m-d H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                    <div>
+                        {% if message.priority == 'urgent' %}
+                            <span class="badge bg-danger">عاجل</span>
+                        {% elif message.priority == 'high' %}
+                            <span class="badge bg-warning">عالي</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark">عادي</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Recipients -->
+                <div class="mb-4">
+                    <small class="text-muted">المستلمون:</small>
+                    <div class="mt-1">
+                        {% for recipient in message.recipients.all %}
+                        <span class="badge bg-light text-dark me-1">
+                            {{ recipient.get_full_name|default:recipient.username }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Message Content -->
+                <div class="message-content p-4 bg-light rounded" style="min-height: 200px;">
+                    {{ message.content|linebreaks }}
+                </div>
+                
+                <!-- Actions -->
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{% url 'dashboard:messages_compose' %}" class="btn btn-dashboard btn-dashboard-primary">
+                        <i class="fas fa-reply me-2"></i>
+                        رد
+                    </a>
+                    <a href="{% url 'dashboard:messages_inbox' %}" class="btn btn-dashboard btn-dashboard-light">
+                        <i class="fas fa-inbox me-2"></i>
+                        صندوق الوارد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

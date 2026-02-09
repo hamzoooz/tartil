@@ -422,8 +422,8 @@ class JuzAdmin(admin.ModelAdmin):
 # ==================== CUSTOMIZE DEFAULT ADMIN ====================
 
 # Override the default admin site title
-admin.site.site_header = 'ترتيل - لوحة التحكم المتقدمة'
-admin.site.site_title = 'ترتيل'
+admin.site.site_header = 'دورات القرآن - لوحة التحكم المتقدمة'
+admin.site.site_title = 'دورات القرآن'
 admin.site.index_title = 'نظرة عامة'
 
 # Add custom CSS to admin

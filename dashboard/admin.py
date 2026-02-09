@@ -12,7 +12,8 @@ from django.shortcuts import render
 
 from .models import (
     DashboardSettings, DashboardWidget, DashboardLayout,
-    DashboardLayoutWidget, AdminActionLog, BulkAction
+    DashboardLayoutWidget, AdminActionLog, BulkAction,
+    Message, Notification, Alert, ExcelImportJob
 )
 
 User = get_user_model()
@@ -312,3 +313,154 @@ class BulkActionAdmin(admin.ModelAdmin):
             obj.get_action_type_display()
         )
     action_type_display.short_description = _('نوع الإجراء')
+
+
+# ==================== Messages Admin ====================
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ['subject', 'sender', 'message_type', 'priority', 'created_at', 'is_draft']
+    list_filter = ['message_type', 'priority', 'is_draft', 'created_at']
+    search_fields = ['subject', 'content', 'sender__username', 'sender__first_name']
+    filter_horizontal = ['recipients', 'read_by']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        (_('معلومات أساسية'), {
+            'fields': ('sender', 'recipients', 'message_type', 'priority')
+        }),
+        (_('المحتوى'), {
+            'fields': ('subject', 'content')
+        }),
+        (_('المرفقات'), {
+            'fields': ('attachments',),
+            'classes': ('collapse',)
+        }),
+        (_('الحالة'), {
+            'fields': ('is_draft', 'is_archived', 'read_by')
+        }),
+        (_('التواريخ'), {
+            'fields': ('expires_at', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+# ==================== Notifications Admin ====================
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['title', 'user', 'notification_type', 'is_read', 'is_important', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'is_important', 'created_at']
+    search_fields = ['title', 'message', 'user__username', 'user__first_name']
+    readonly_fields = ['created_at', 'read_at']
+    
+    fieldsets = (
+        (_('معلومات أساسية'), {
+            'fields': ('user', 'notification_type', 'title', 'message')
+        }),
+        (_('الرابط'), {
+            'fields': ('link', 'link_text')
+        }),
+        (_('البيانات'), {
+            'fields': ('data',),
+            'classes': ('collapse',)
+        }),
+        (_('الحالة'), {
+            'fields': ('is_read', 'is_important', 'shown_in_ui', 'email_sent', 'push_sent')
+        }),
+        (_('التواريخ'), {
+            'fields': ('created_at', 'read_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+# ==================== Alerts Admin ====================
+
+@admin.register(Alert)
+class AlertAdmin(admin.ModelAdmin):
+    list_display = ['title', 'alert_type', 'is_active', 'views_count', 'created_at']
+    list_filter = ['alert_type', 'is_active', 'show_once', 'dismissible', 'created_at']
+    search_fields = ['title', 'message']
+    filter_horizontal = ['target_users', 'dismissed_by']
+    readonly_fields = ['views_count', 'created_at']
+    
+    fieldsets = (
+        (_('معلومات أساسية'), {
+            'fields': ('title', 'message', 'alert_type')
+        }),
+        (_('المستهدفون'), {
+            'fields': ('target_users', 'target_roles')
+        }),
+        (_('التحكم'), {
+            'fields': ('is_active', 'show_once', 'dismissible')
+        }),
+        (_('المدة'), {
+            'fields': ('start_date', 'end_date')
+        }),
+        (_('الإحصائيات'), {
+            'fields': ('views_count', 'dismissed_by', 'created_at')
+        }),
+    )
+
+
+# ==================== Excel Import Admin ====================
+
+@admin.register(ExcelImportJob)
+class ExcelImportJobAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'import_type', 'file_name', 'status_badge',
+        'success_count', 'failed_count', 'created_at'
+    ]
+    list_filter = ['import_type', 'status', 'created_at']
+    search_fields = ['file_name']
+    readonly_fields = [
+        'total_rows', 'success_count', 'failed_count', 'skipped_count',
+        'errors_log', 'created_users', 'created_halaqat',
+        'started_at', 'completed_at', 'created_at'
+    ]
+    
+    fieldsets = (
+        (_('معلومات أساسية'), {
+            'fields': ('import_type', 'file_name', 'file_path')
+        }),
+        (_('الإعدادات'), {
+            'fields': ('create_accounts', 'auto_distribute', 'distribution_count')
+        }),
+        (_('الحالة'), {
+            'fields': ('status',)
+        }),
+        (_('النتائج'), {
+            'fields': ('total_rows', 'success_count', 'failed_count', 'skipped_count'),
+            'classes': ('collapse',)
+        }),
+        (_('سجل الأخطاء'), {
+            'fields': ('errors_log',),
+            'classes': ('collapse',)
+        }),
+        (_('البيانات المنشأة'), {
+            'fields': ('created_users', 'created_halaqat'),
+            'classes': ('collapse',)
+        }),
+        (_('التواريخ'), {
+            'fields': ('started_at', 'completed_at', 'created_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def status_badge(self, obj):
+        colors = {
+            'pending': '#6c757d',
+            'processing': '#0d6efd',
+            'completed': '#198754',
+            'partial': '#ffc107',
+            'failed': '#dc3545',
+        }
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 10px; '
+            'border-radius: 10px; font-size: 12px;">{}</span>',
+            colors.get(obj.status, '#6c757d'),
+            obj.get_status_display()
+        )
+    status_badge.short_description = _('الحالة')

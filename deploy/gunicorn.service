@@ -2,14 +2,14 @@
 # /etc/systemd/system/tartil.service
 
 [Unit]
-Description=Tartil Gunicorn Daemon
+Description=Quran Courses Gunicorn Daemon
 After=network.target
 
 [Service]
-User=ubuntu
+User=hamzoooz123
 Group=www-data
-WorkingDirectory=/home/ubuntu/hamzoooz/profiles/tartil
-ExecStart=/home/ubuntu/hamzoooz/profiles/tartil/venv/bin/gunicorn \
+WorkingDirectory=/home/hamzoooz123/qurancourses/tartil
+ExecStart=/home/hamzoooz123/qurancourses/tartil/venv/bin/gunicorn \
     --workers 3 \
     --bind 127.0.0.1:8005 \
     --access-logfile /var/log/gunicorn/tartil_access.log \

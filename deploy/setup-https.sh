@@ -1,9 +1,9 @@
 #!/bin/bash
-# Script to setup HTTPS with Let's Encrypt for Tartil
+# Script to setup HTTPS with Let's Encrypt for Quran Courses
 
 set -e
 
-DOMAIN="tartil.zolna.app"
+DOMAIN="qurancourses.org"
 PROJECT_DIR="/home/ubuntu/hamzoooz/profiles/tartil"
 
 echo "=== Setting up HTTPS for $DOMAIN ==="

@@ -1,13 +1,13 @@
 [Unit]
-Description=Tartil Quran LMS Platform
+Description=Quran Courses LMS Platform
 After=network.target
 
 [Service]
-User=ubuntu
-Group=ubuntu
-WorkingDirectory=/home/ubuntu/hamzoooz/profiles/tartil
-Environment="PATH=/home/ubuntu/hamzoooz/profiles/tartil/venv/bin"
-ExecStart=/home/ubuntu/hamzoooz/profiles/tartil/venv/bin/gunicorn tartil.wsgi:application -c gunicorn.conf.py
+User=hamzoooz123
+Group=www-data
+WorkingDirectory=/home/hamzoooz123/qurancourses/tartil
+Environment="PATH=/home/hamzoooz123/qurancourses/tartil/venv/bin"
+ExecStart=/home/hamzoooz123/qurancourses/tartil/venv/bin/gunicorn tartil.wsgi:application -c gunicorn.conf.py
 Restart=always
 RestartSec=3
 

@@ -1,6 +1,6 @@
 """
-مسارات مشروع ترتيل
-Tartil Project URLs
+مسارات مشروع دورات القرآن
+Quran Courses Project URLs
 """
 from django.contrib import admin
 from django.urls import path, include
@@ -8,8 +8,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 # تخصيص لوحة الإدارة
-admin.site.site_header = 'إدارة منصة ترتيل'
-admin.site.site_title = 'ترتيل'
+admin.site.site_header = 'إدارة منصة دورات القرآن'
+admin.site.site_title = 'دورات القرآن'
 admin.site.index_title = 'لوحة التحكم'
 
 urlpatterns = [
@@ -28,6 +28,9 @@ urlpatterns = [
     path('gamification/', include('gamification.urls', namespace='gamification')),
     path('reports/', include('reports.urls', namespace='reports')),
     path('courses/', include('courses.urls', namespace='courses')),
+    
+    # نظام النشر والتنبيهات المجدول
+    path('notifications-system/', include('notifications_system.urls', namespace='notifications_system')),
 ]
 
 # خدمة ملفات الوسائط في وضع التطوير

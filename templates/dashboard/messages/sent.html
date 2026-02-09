@@ -1,0 +1,102 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+
+{% block title %}الرسائل المرسلة{% endblock %}
+{% block page_title %}الرسائل المرسلة{% endblock %}
+
+{% block content %}
+<!-- Action Buttons -->
+<div class="mb-4">
+    <a href="{% url 'dashboard:messages_compose' %}" class="btn btn-dashboard btn-dashboard-primary">
+        <i class="fas fa-plus"></i>
+        رسالة جديدة
+    </a>
+    <a href="{% url 'dashboard:messages_inbox' %}" class="btn btn-dashboard btn-dashboard-light">
+        <i class="fas fa-inbox"></i>
+        صندوق الوارد
+    </a>
+</div>
+
+<!-- Messages List -->
+<div class="dashboard-card">
+    <div class="card-header">
+        <h5 class="card-title">
+            <i class="fas fa-paper-plane text-success me-2"></i>
+            الرسائل المرسلة
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for message in messages %}
+            <a href="{% url 'dashboard:messages_detail' message.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-paper-plane"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ message.subject }}</h6>
+                            <p class="mb-0 text-muted small">
+                                إلى: 
+                                {% for recipient in message.recipients.all|slice:":3" %}
+                                    {{ recipient.get_full_name|default:recipient.username }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                {% if message.recipients.count > 3 %}
+                                    و {{ message.recipients.count|add:"-3" }} آخرين
+                                {% endif %}
+                                <span class="mx-2">|</span>
+                                {{ message.created_at|timesince }} ago
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-light text-dark">
+                            <i class="fas fa-check-double me-1"></i>
+                            {{ message.read_by.count }}/{{ message.recipients.count }} مقروءة
+                        </span>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-paper-plane fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">لا توجد رسائل مرسلة</h5>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination-dashboard">
+        {% if page_obj.has_previous %}
+        <li>
+            <a href="?page={{ page_obj.previous_page_number }}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="active"><span>{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li><a href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li>
+            <a href="?page={{ page_obj.next_page_number }}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

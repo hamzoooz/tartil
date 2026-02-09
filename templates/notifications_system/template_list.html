@@ -1,0 +1,92 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}قوالب الإشعارات{% endblock %}
+{% block page_title %}قوالب الإشعارات{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">قوالب الإشعارات</h4>
+        <p class="text-muted mb-0">قوالب جاهزة لإعادة الاستخدام في الإشعارات المجدولة</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'notifications_system:calendar' %}" class="btn btn-dashboard btn-dashboard-light">
+            <i class="fas fa-arrow-right me-1"></i> عودة
+        </a>
+        <a href="{% url 'notifications_system:template_create' %}" class="btn btn-dashboard btn-dashboard-primary">
+            <i class="fas fa-plus me-1"></i> قالب جديد
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    {% for template in templates %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="dashboard-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge badge-soft-primary mb-2">
+                            {{ template.get_content_type_display }}
+                        </span>
+                        <h5 class="card-title mb-0">{{ template.name }}</h5>
+                    </div>
+                    {% if not template.is_active %}
+                    <span class="badge badge-soft-dark">معطل</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">العنوان:</div>
+                    <div class="fw-semibold">{{ template.title_template }}</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">الرسالة:</div>
+                    <p class="text-muted mb-0" style="white-space: pre-line;">
+                        {{ template.message_template|truncatechars:150 }}
+                    </p>
+                </div>
+                
+                {% if template.image %}
+                <div class="mb-3">
+                    <img src="{{ template.image.url }}" alt="" class="img-fluid rounded" style="max-height: 100px;">
+                </div>
+                {% endif %}
+                
+                {% if template.available_variables %}
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">المتغيرات:</div>
+                    <div class="d-flex gap-1 flex-wrap">
+                        {% for var in template.available_variables %}
+                        <code class="small">{{ var }}</code>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'notifications_system:template_update' template.pk %}" class="btn btn-sm btn-primary flex-fill">
+                        <i class="fas fa-edit me-1"></i> تعديل
+                    </a>
+                    <a href="{% url 'notifications_system:create' %}?template={{ template.id }}" class="btn btn-sm btn-success flex-fill">
+                        <i class="fas fa-plus me-1"></i> استخدام
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-file-alt fa-3x mb-3"></i>
+            <p>لا توجد قوالب</p>
+            <a href="{% url 'notifications_system:template_create' %}" class="btn btn-primary">
+                إنشاء قالب جديد
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

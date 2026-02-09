@@ -1,6 +1,6 @@
 """
-إعدادات مشروع ترتيل
-Django settings for Tartil project.
+إعدادات مشروع دورات القرآن
+Django settings for Quran Courses project.
 """
 
 from pathlib import Path
@@ -20,7 +20,8 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ['tartil.zolna.app', 'www.tartil.zolna.app', 
                  'qurancourses.org', 'www.qurancourses.org',
-                 'localhost', '127.0.0.1']
+                 'localhost', '127.0.0.1',
+                 '34.18.216.179']
 
 CSRF_TRUSTED_ORIGINS = ['https://tartil.zolna.app', 'https://www.tartil.zolna.app',
                          'https://qurancourses.org', 'https://www.qurancourses.org',
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     'courses.apps.CoursesConfig',
     # لوحة التحكم المتقدمة
     'dashboard.apps.DashboardConfig',
+    # نظام النشر والتنبيهات المجدول
+    'notifications_system.apps.NotificationsSystemConfig',
 ]
 
 MIDDLEWARE = [
@@ -76,6 +79,7 @@ TEMPLATES = [
                 # معالجات السياق المخصصة
                 'courses.context_processors.notifications_context',
                 'courses.context_processors.courses_context',
+                'dashboard.context_processors.dashboard_notifications',
             ],
         },
     },
@@ -173,12 +177,12 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # SECURE_SSL_REDIRECT = True  # Temporarily disabled until SSL is set up
+    # SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE = True
+    # SECURE_HSTS_SECONDS = 31536000
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 else:
     # إعدادات التطوير
@@ -200,3 +204,39 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+# Celery Configuration
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# Celery Beat Schedule
+CELERY_BEAT_SCHEDULE = {
+    'process-scheduled-notifications': {
+        'task': 'notifications_system.tasks.process_pending_notifications',
+        'schedule': 60.0,  # كل دقيقة
+        'args': (50,),  # دفعة من 50 إشعار
+    },
+    'retry-failed-notifications': {
+        'task': 'notifications_system.tasks.retry_failed_notifications',
+        'schedule': 300.0,  # كل 5 دقائق
+    },
+    'cleanup-old-logs': {
+        'task': 'notifications_system.tasks.cleanup_old_dispatch_logs',
+        'schedule': 86400.0,  # مرة يومياً
+        'args': (90,),  # حذف سجلات أقدم من 90 يوم
+    },
+}
+
+# Notification System Settings
+NOTIFICATIONS_SETTINGS = {
+    'DEFAULT_WEBHOOK_TIMEOUT': 30,
+    'MAX_RETRY_ATTEMPTS': 3,
+    'RETRY_DELAY_SECONDS': [5, 15, 30],
+    'BATCH_SIZE': 50,
+    'CLEANUP_OLDER_THAN_DAYS': 90,
+}

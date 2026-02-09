@@ -1,0 +1,398 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+{% block page_title %}تفاصيل الإشعار{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">{{ notification.title }}</h4>
+        <div class="d-flex gap-2 align-items-center">
+            {% if notification.status == 'scheduled' %}
+            <span class="badge badge-soft-info">{{ notification.get_status_display }}</span>
+            {% elif notification.status == 'sent' %}
+            <span class="badge badge-soft-success">{{ notification.get_status_display }}</span>
+            {% elif notification.status == 'failed' %}
+            <span class="badge badge-soft-danger">{{ notification.get_status_display }}</span>
+            {% elif notification.status == 'draft' %}
+            <span class="badge badge-soft-secondary">{{ notification.get_status_display }}</span>
+            {% elif notification.status == 'cancelled' %}
+            <span class="badge badge-soft-dark">{{ notification.get_status_display }}</span>
+            {% endif %}
+            
+            {% if not notification.is_enabled %}
+            <span class="badge badge-soft-dark">معطّل</span>
+            {% endif %}
+            
+            <span class="badge badge-soft-primary">{{ notification.get_content_type_display }}</span>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2">
+        {% if notification.can_send_now %}
+        <form method="post" action="{% url 'notifications_system:send_now' notification.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" onclick="return confirm('هل تريد إرسال هذا الإشعار فوراً؟');">
+                <i class="fas fa-paper-plane me-1"></i> إرسال فوري
+            </button>
+        </form>
+        {% endif %}
+        
+        <a href="{% url 'notifications_system:update' notification.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit me-1"></i> تعديل
+        </a>
+        
+        <a href="{% url 'notifications_system:list' %}" class="btn btn-light">
+            <i class="fas fa-arrow-right me-1"></i> عودة
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Info Column -->
+    <div class="col-lg-8">
+        <!-- Basic Info Card -->
+        <div class="dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>المعلومات الأساسية
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">العنوان</div>
+                        <div class="fw-semibold">{{ notification.title }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">نوع المحتوى</div>
+                        <div class="fw-semibold">{{ notification.get_content_type_display }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">المستهدفون</div>
+                        <div class="fw-semibold">{{ notification.get_target_type_display }}</div>
+                        {% if notification.target_halaqa %}
+                        <div class="small text-muted">{{ notification.target_halaqa.name }}</div>
+                        {% endif %}
+                        {% if notification.target_course %}
+                        <div class="small text-muted">{{ notification.target_course.name }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">تاريخ الإرسال المجدول</div>
+                        <div class="fw-semibold">
+                            {{ notification.scheduled_datetime|date:"Y-m-d" }}
+                            <span class="text-muted">{{ notification.scheduled_datetime|date:"H:i" }}</span>
+                        </div>
+                        <div class="small text-muted">{{ notification.timezone }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">نوع التكرار</div>
+                        <div class="fw-semibold">{{ notification.get_recurrence_type_display }}</div>
+                        {% if notification.recurrence_end_date %}
+                        <div class="small text-muted">حتى {{ notification.recurrence_end_date|date:"Y-m-d" }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">تاريخ الإنشاء</div>
+                        <div class="fw-semibold">{{ notification.created_at|date:"Y-m-d H:i" }}</div>
+                        <div class="small text-muted">بواسطة: {{ notification.created_by.get_full_name|default:"غير معروف" }}</div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">الرسالة</div>
+                    <div class="p-3 bg-light rounded">
+                        {{ notification.message|linebreaks }}
+                    </div>
+                </div>
+                
+                {% if notification.link %}
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">الرابط</div>
+                    <a href="{{ notification.link }}" target="_blank" class="text-primary">
+                        {{ notification.link }} <i class="fas fa-external-link-alt small"></i>
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if notification.image %}
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">الصورة</div>
+                    <img src="{{ notification.image.url }}" alt="" class="img-fluid rounded" style="max-height: 200px;">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Dispatch Logs -->
+        <div class="dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-paper-plane me-2 text-info"></i>سجل الإرسال
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="dashboard-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>المستلم</th>
+                                <th>الحالة</th>
+                                <th>المحاولات</th>
+                                <th>آخر محاولة</th>
+                                <th>الاستجابة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in dispatch_logs %}
+                            <tr>
+                                <td>{{ log.recipient.get_full_name }}</td>
+                                <td>
+                                    {% if log.status == 'success' %}
+                                    <span class="badge badge-soft-success">{{ log.get_status_display }}</span>
+                                    {% elif log.status == 'failed' %}
+                                    <span class="badge badge-soft-danger">{{ log.get_status_display }}</span>
+                                    {% elif log.status == 'pending' %}
+                                    <span class="badge badge-soft-warning">{{ log.get_status_display }}</span>
+                                    {% else %}
+                                    <span class="badge badge-soft-secondary">{{ log.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.attempt_count }} / {{ log.max_attempts }}</td>
+                                <td>
+                                    {% if log.last_attempt_at %}
+                                    {{ log.last_attempt_at|date:"Y-m-d H:i" }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.response_status_code %}
+                                    <span class="{% if log.response_status_code == 200 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ log.response_status_code }}
+                                    </span>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    لا توجد سجلات إرسال
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audit Log -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2 text-secondary"></i>سجل التدقيق
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="activity-list">
+                    {% for audit in audit_logs %}
+                    <div class="activity-item">
+                        <div class="activity-icon 
+                            {% if audit.action == 'created' %}bg-success
+                            {% elif audit.action == 'updated' %}bg-primary
+                            {% elif audit.action == 'deleted' %}bg-danger
+                            {% elif audit.action == 'sent' %}bg-info
+                            {% elif audit.action == 'cancelled' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                            <i class="fas fa-{% if audit.action == 'created' %}plus{% elif audit.action == 'updated' %}edit{% elif audit.action == 'deleted' %}trash{% elif audit.action == 'sent' %}paper-plane{% elif audit.action == 'cancelled' %}ban{% else %}cog{% endif %} text-white"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">
+                                <strong>{{ audit.get_action_display }}</strong>
+                                بواسطة {{ audit.user.get_full_name|default:"غير معروف" }}
+                            </div>
+                            <div class="activity-time">
+                                {{ audit.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                            {% if audit.changes %}
+                            <div class="small text-muted mt-1">
+                                تغييرات: {{ audit.changes|truncatechars:100 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted">
+                        لا توجد سجلات تدقيق
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+        <!-- Statistics Card -->
+        <div class="dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2 text-primary"></i>الإحصائيات
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-6">
+                        <div class="stat-value text-primary">{{ notification.total_recipients }}</div>
+                        <div class="stat-label">إجمالي المستلمين</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-value text-success">{{ notification.successful_sends }}</div>
+                        <div class="stat-label">الإرسال الناجح</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-value text-danger">{{ notification.failed_sends }}</div>
+                        <div class="stat-label">الإرسال الفاشل</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-value text-info">
+                            {% if notification.total_recipients > 0 %}
+                            {{ notification.successful_sends|div:notification.total_recipients|mul:100|floatformat:0 }}%
+                            {% else %}
+                            0%
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">نسبة النجاح</div>
+                    </div>
+                </div>
+                
+                {% if notification.sent_at %}
+                <hr>
+                <div class="text-center">
+                    <div class="text-muted small mb-1">تاريخ الإرسال الفعلي</div>
+                    <div class="fw-semibold">{{ notification.sent_at|date:"Y-m-d H:i" }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Actions Card -->
+        <div class="dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2 text-secondary"></i>الإجراءات
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <form method="post" action="{% url 'notifications_system:toggle' notification.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-{% if notification.is_enabled %}warning{% else %}info{% endif %} w-100">
+                            <i class="fas fa-{% if notification.is_enabled %}pause{% else %}play{% endif %} me-1"></i>
+                            {% if notification.is_enabled %}تعطيل{% else %}تفعيل{% endif %}
+                        </button>
+                    </form>
+                    
+                    {% if notification.status != 'sent' and notification.status != 'cancelled' %}
+                    <form method="post" action="{% url 'notifications_system:cancel' notification.pk %}" 
+                          onsubmit="return confirm('هل تريد إلغاء هذا الإشعار؟');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary w-100">
+                            <i class="fas fa-ban me-1"></i> إلغاء الإشعار
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'notifications_system:duplicate' notification.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-copy me-1"></i> تكرار الإشعار
+                        </button>
+                    </form>
+                    
+                    <form method="post" action="{% url 'notifications_system:delete' notification.pk %}" 
+                          onsubmit="return confirm('هل تريد حذف هذا الإشعار نهائياً؟');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-trash me-1"></i> حذف
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payload Preview -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-code me-2 text-primary"></i>معاينة البيانات
+                </h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'notifications_system:preview_payload' notification.pk %}" 
+                   target="_blank" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-eye me-2"></i>عرض حمولة JSON
+                </a>
+                <div class="small text-muted mt-2">
+                    عرض البيانات التي سيتم إرسالها إلى Webhook
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Child Notifications (if recurring) -->
+{% if child_notifications %}
+<div class="dashboard-card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-clone me-2 text-info"></i>النسخ المتكررة ({{ child_notifications|length }})
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="dashboard-table mb-0">
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for child in child_notifications %}
+                    <tr>
+                        <td>{{ child.scheduled_datetime|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            {% if child.status == 'scheduled' %}
+                            <span class="badge badge-soft-info">{{ child.get_status_display }}</span>
+                            {% elif child.status == 'sent' %}
+                            <span class="badge badge-soft-success">{{ child.get_status_display }}</span>
+                            {% elif child.status == 'failed' %}
+                            <span class="badge badge-soft-danger">{{ child.get_status_display }}</span>
+                            {% elif child.status == 'cancelled' %}
+                            <span class="badge badge-soft-dark">{{ child.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'notifications_system:detail' child.pk %}" class="btn btn-sm btn-light">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

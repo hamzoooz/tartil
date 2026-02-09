@@ -1,0 +1,362 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .form-section-title {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .form-section-title i {
+        color: #2563eb;
+    }
+    .recurrence-days-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .recurrence-days-group .form-check {
+        padding: 8px 15px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .template-preview {
+        background: #f1f5f9;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 10px;
+    }
+    .help-text {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+    .target-fields {
+        display: none;
+    }
+    .target-fields.active {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row">
+        <!-- Main Content Column -->
+        <div class="col-lg-8">
+            <!-- Basic Info -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-info-circle"></i>
+                    المعلومات الأساسية
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">{{ form.title.label }} <span class="text-danger">*</span></label>
+                        {{ form.title }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.content_type.label }} <span class="text-danger">*</span></label>
+                        {{ form.content_type }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.template.label }}</label>
+                        {{ form.template }}
+                        <div class="help-text">اختيار قالب يملأ الحقول تلقائياً</div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label class="form-label">{{ form.message.label }} <span class="text-danger">*</span></label>
+                        {{ form.message }}
+                        <div class="help-text">
+                            المتغيرات المتاحة: 
+                            <code>{student_name}</code>, 
+                            <code>{first_name}</code>, 
+                            <code>{username}</code>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.image.label }}</label>
+                        {{ form.image }}
+                        {% if notification and notification.image %}
+                        <div class="mt-2">
+                            <img src="{{ notification.image.url }}" alt="" style="max-height: 100px; border-radius: 8px;">
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.link.label }}</label>
+                        {{ form.link }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scheduling -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-clock"></i>
+                    الجدولة
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">{{ form.schedule_date.label }} <span class="text-danger">*</span></label>
+                        {{ form.schedule_date }}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">{{ form.schedule_time.label }} <span class="text-danger">*</span></label>
+                        {{ form.schedule_time }}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">{{ form.timezone.label }}</label>
+                        {{ form.timezone }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.recurrence_type.label }}</label>
+                        {{ form.recurrence_type }}
+                    </div>
+                    
+                    <div class="col-md-6" id="recurrence-end-container" style="display: none;">
+                        <label class="form-label">{{ form.recurrence_end_date.label }}</label>
+                        {{ form.recurrence_end_date }}
+                    </div>
+                    
+                    <div class="col-md-12" id="recurrence-days-container" style="display: none;">
+                        <label class="form-label">أيام التكرار</label>
+                        <div class="recurrence-days-group">
+                            <div class="form-check">
+                                <input type="checkbox" name="recurrence_days" value="6" class="form-check-input" id="day_sat">
+                                <label class="form-check-label" for="day_sat">السبت</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="recurrence_days" value="0" class="form-check-input" id="day_sun">
+                                <label class="form-check-label" for="day_sun">الأحد</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="recurrence_days" value="1" class="form-check-input" id="day_mon">
+                                <label class="form-check-label" for="day_mon">الإثنين</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="recurrence_days" value="2" class="form-check-input" id="day_tue">
+                                <label class="form-check-label" for="day_tue">الثلاثاء</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="recurrence_days" value="3" class="form-check-input" id="day_wed">
+                                <label class="form-check-label" for="day_wed">الأربعاء</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="recurrence_days" value="4" class="form-check-input" id="day_thu">
+                                <label class="form-check-label" for="day_thu">الخميس</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="recurrence_days" value="5" class="form-check-input" id="day_fri">
+                                <label class="form-check-label" for="day_fri">الجمعة</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Linking (Optional) -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-link"></i>
+                    ربط بمحتوى (اختياري)
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.lesson.label }}</label>
+                        {{ form.lesson }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.tafseer.label }}</label>
+                        {{ form.tafseer }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar Column -->
+        <div class="col-lg-4">
+            <!-- Target Audience -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-users"></i>
+                    المستهدفون
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ form.target_type.label }} <span class="text-danger">*</span></label>
+                    {{ form.target_type }}
+                </div>
+                
+                <!-- Dynamic target fields -->
+                <div id="target-halaqa-field" class="target-fields">
+                    <label class="form-label">{{ form.target_halaqa.label }}</label>
+                    {{ form.target_halaqa }}
+                </div>
+                
+                <div id="target-course-field" class="target-fields">
+                    <label class="form-label">{{ form.target_course.label }}</label>
+                    {{ form.target_course }}
+                </div>
+                
+                <div id="target-users-field" class="target-fields">
+                    <label class="form-label">{{ form.target_users.label }}</label>
+                    {{ form.target_users }}
+                </div>
+            </div>
+            
+            <!-- Settings -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-cog"></i>
+                    الإعدادات
+                </div>
+                
+                <div class="form-check form-switch mb-3">
+                    {{ form.is_enabled }}
+                    <label class="form-check-label" for="{{ form.is_enabled.id_for_label }}">
+                        تفعيل الإشعار
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="form-section">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-dashboard btn-dashboard-primary btn-lg">
+                        <i class="fas fa-save me-2"></i>{{ action }}
+                    </button>
+                    <a href="{% url 'notifications_system:list' %}" class="btn btn-dashboard btn-dashboard-light">
+                        <i class="fas fa-times me-2"></i>إلغاء
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Preview -->
+            {% if notification %}
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-eye"></i>
+                    معاينة
+                </div>
+                <a href="{% url 'notifications_system:preview_payload' notification.pk %}" 
+                   target="_blank" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-code me-2"></i>عرض حمولة البيانات
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Template auto-fill
+    const templateSelect = document.getElementById('{{ form.template.id_for_label }}');
+    const titleInput = document.getElementById('{{ form.title.id_for_label }}');
+    const messageInput = document.getElementById('{{ form.message.id_for_label }}');
+    const contentTypeSelect = document.getElementById('{{ form.content_type.id_for_label }}');
+    
+    if (templateSelect) {
+        templateSelect.addEventListener('change', function() {
+            const templateId = this.value;
+            if (!templateId) return;
+            
+            fetch(`{% url 'notifications_system:template_content' %}?template_id=${templateId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.title_template) {
+                        titleInput.value = data.title_template;
+                    }
+                    if (data.message_template) {
+                        messageInput.value = data.message_template;
+                    }
+                    if (data.content_type) {
+                        contentTypeSelect.value = data.content_type;
+                    }
+                });
+        });
+    }
+    
+    // Target type toggle
+    const targetTypeSelect = document.getElementById('{{ form.target_type.id_for_label }}');
+    const halaqaField = document.getElementById('target-halaqa-field');
+    const courseField = document.getElementById('target-course-field');
+    const usersField = document.getElementById('target-users-field');
+    
+    function updateTargetFields() {
+        const value = targetTypeSelect.value;
+        
+        halaqaField.classList.remove('active');
+        courseField.classList.remove('active');
+        usersField.classList.remove('active');
+        
+        if (value === 'halaqa') {
+            halaqaField.classList.add('active');
+        } else if (value === 'course') {
+            courseField.classList.add('active');
+        } else if (value === 'specific_users') {
+            usersField.classList.add('active');
+        }
+    }
+    
+    targetTypeSelect.addEventListener('change', updateTargetFields);
+    updateTargetFields(); // Initial state
+    
+    // Recurrence toggle
+    const recurrenceSelect = document.getElementById('{{ form.recurrence_type.id_for_label }}');
+    const recurrenceEndContainer = document.getElementById('recurrence-end-container');
+    const recurrenceDaysContainer = document.getElementById('recurrence-days-container');
+    
+    function updateRecurrenceFields() {
+        const value = recurrenceSelect.value;
+        
+        if (value === 'one_time') {
+            recurrenceEndContainer.style.display = 'none';
+            recurrenceDaysContainer.style.display = 'none';
+        } else {
+            recurrenceEndContainer.style.display = 'block';
+            
+            if (value === 'custom' || value === 'biweekly') {
+                recurrenceDaysContainer.style.display = 'block';
+            } else {
+                recurrenceDaysContainer.style.display = 'none';
+            }
+        }
+    }
+    
+    recurrenceSelect.addEventListener('change', updateRecurrenceFields);
+    updateRecurrenceFields(); // Initial state
+});
+</script>
+{% endblock %}

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tartil Platform Startup Script
+# Quran Courses Platform Startup Script
 
 cd "$(dirname "$0")"
 

@@ -1,0 +1,87 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if object %}تعديل قالب{% else %}قالب جديد{% endif %}{% endblock %}
+{% block page_title %}{% if object %}تعديل قالب{% else %}قالب جديد{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    {% if object %}
+                    <i class="fas fa-edit me-2 text-primary"></i>تعديل قالب
+                    {% else %}
+                    <i class="fas fa-plus me-2 text-primary"></i>قالب جديد
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.name.label }} <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.content_type.label }} <span class="text-danger">*</span></label>
+                            {{ form.content_type }}
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.title_template.label }} <span class="text-danger">*</span></label>
+                            {{ form.title_template }}
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label">{{ form.message_template.label }} <span class="text-danger">*</span></label>
+                            {{ form.message_template }}
+                            <div class="help-text small text-muted mt-1">
+                                المتغيرات المتاحة: <code>{student_name}</code>, <code>{first_name}</code>, <code>{username}</code>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.image.label }}</label>
+                            {{ form.image }}
+                            {% if object and object.image %}
+                            <div class="mt-2">
+                                <img src="{{ object.image.url }}" alt="" style="max-height: 100px; border-radius: 8px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.link.label }}</label>
+                            {{ form.link }}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-4">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    قالب نشط
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-dashboard btn-dashboard-primary">
+                            <i class="fas fa-save me-2"></i>حفظ
+                        </button>
+                        <a href="{% url 'notifications_system:template_list' %}" class="btn btn-dashboard btn-dashboard-light">
+                            <i class="fas fa-times me-2"></i>إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

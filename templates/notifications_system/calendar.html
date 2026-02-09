@@ -1,0 +1,261 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}نظام النشر والتنبيهات{% endblock %}
+{% block page_title %}نظام النشر والتنبيهات{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar CSS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet' />
+<style>
+    .fc {
+        font-family: 'Tajawal', sans-serif;
+    }
+    .fc-event {
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.85rem;
+    }
+    .fc-toolbar-title {
+        font-size: 1.25rem !important;
+        font-weight: 600;
+    }
+    .fc-button {
+        font-family: 'Tajawal', sans-serif !important;
+    }
+    .fc-direction-rtl {
+        direction: rtl;
+    }
+    .notification-stats .stat-card {
+        padding: 15px;
+        text-align: center;
+        border-radius: 12px;
+        transition: transform 0.2s;
+    }
+    .notification-stats .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    .notification-stats .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    .notification-stats .stat-label {
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+    .upcoming-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .upcoming-item {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        transition: background 0.2s;
+    }
+    .upcoming-item:hover {
+        background: #f8fafc;
+    }
+    .upcoming-item:last-child {
+        border-bottom: none;
+    }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Stats Row -->
+<div class="row notification-stats mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card bg-white shadow-sm">
+            <div class="stat-value text-primary">{{ stats.total|default:"0" }}</div>
+            <div class="stat-label">إجمالي الإشعارات</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card bg-white shadow-sm">
+            <div class="stat-value text-info">{{ stats.scheduled|default:"0" }}</div>
+            <div class="stat-label">مجدولة</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card bg-white shadow-sm">
+            <div class="stat-value text-success">{{ stats.sent|default:"0" }}</div>
+            <div class="stat-label">تم الإرسال</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card bg-white shadow-sm">
+            <div class="stat-value text-danger">{{ stats.failed|default:"0" }}</div>
+            <div class="stat-label">فشل</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Calendar Column -->
+    <div class="col-lg-8">
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i>التقويم
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'notifications_system:list' %}" class="btn btn-dashboard btn-dashboard-light">
+                        <i class="fas fa-list me-1"></i> القائمة
+                    </a>
+                    <a href="{% url 'notifications_system:create' %}" class="btn btn-dashboard btn-dashboard-primary">
+                        <i class="fas fa-plus me-1"></i> إشعار جديد
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-3">
+                <!-- Legend -->
+                <div class="d-flex gap-3 mb-3 flex-wrap">
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="rounded-circle" style="width: 12px; height: 12px; background: #2563eb;"></span>
+                        <small>مجدول</small>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="rounded-circle" style="width: 12px; height: 12px; background: #10b981;"></span>
+                        <small>تم الإرسال</small>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="rounded-circle" style="width: 12px; height: 12px; background: #ef4444;"></span>
+                        <small>فشل</small>
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="rounded-circle" style="width: 12px; height: 12px; background: #6c757d;"></span>
+                        <small>مسودة</small>
+                    </span>
+                </div>
+                
+                <!-- Calendar -->
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+        <!-- Upcoming Notifications -->
+        <div class="dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2 text-info"></i>القادمة
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="upcoming-list">
+                    {% for notif in upcoming %}
+                    <div class="upcoming-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold mb-1">{{ notif.title }}</div>
+                                <div class="small text-muted">
+                                    <i class="far fa-clock me-1"></i>
+                                    {{ notif.scheduled_datetime|date:"Y-m-d H:i" }}
+                                </div>
+                                <div class="small mt-1">
+                                    <span class="badge badge-soft-primary">
+                                        {{ notif.get_content_type_display }}
+                                    </span>
+                                    <span class="badge badge-soft-secondary">
+                                        {{ notif.get_target_type_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <a href="{% url 'notifications_system:detail' notif.pk %}" class="btn btn-sm btn-light">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="upcoming-item text-center text-muted py-4">
+                        <i class="far fa-calendar-times fa-2x mb-2"></i>
+                        <p class="mb-0">لا توجد إشعارات قادمة</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2 text-warning"></i>إجراءات سريعة
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'notifications_system:template_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-file-alt me-2"></i>إدارة القوالب
+                    </a>
+                    <a href="{% url 'notifications_system:create' %}?type=lesson" class="btn btn-outline-success">
+                        <i class="fas fa-book me-2"></i>إشعار درس
+                    </a>
+                    <a href="{% url 'notifications_system:create' %}?type=morning_motivation" class="btn btn-outline-info">
+                        <i class="fas fa-sun me-2"></i>تحفيز صباحي
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar JS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/ar.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'ar',
+        direction: 'rtl',
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        buttonText: {
+            today: 'اليوم',
+            month: 'شهر',
+            week: 'أسبوع',
+            day: 'يوم',
+            list: 'قائمة'
+        },
+        events: '{% url "notifications_system:calendar_data" %}',
+        eventClick: function(info) {
+            if (info.event.url) {
+                window.location.href = info.event.url;
+                info.jsEvent.preventDefault();
+            }
+        },
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        },
+        height: 'auto',
+        aspectRatio: 1.5,
+    });
+    
+    calendar.render();
+});
+</script>
+{% endblock %}
