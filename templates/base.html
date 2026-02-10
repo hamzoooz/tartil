@@ -37,8 +37,18 @@
 
         /* Navbar */
         .navbar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .navbar .nav-link,
+        .navbar .navbar-brand {
+            color: var(--dark-color);
+        }
+
+        .navbar .nav-link:hover,
+        .navbar .nav-link:focus {
+            color: var(--primary-color);
         }
 
         .navbar-brand {
@@ -46,8 +56,8 @@
             font-size: 1.5rem;
         }
 
-        .navbar-brand i {
-            color: var(--accent-color);
+        .brand-text {
+            display: none;
         }
 
         .nav-link {
@@ -314,11 +324,12 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'core:home' %}">
-                <img src="{% static SITE_LOGO %}" alt="{{ SITE_NAME }}" height="40" class="me-2">
-                <span>{{ SITE_NAME }}</span>
+                <img src="{% static SITE_LOGO %}" alt="{{ SITE_NAME }}" height="40" class="brand-logo"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span class="brand-text">{{ SITE_NAME }}</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -462,8 +473,9 @@
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <h5 class="d-flex align-items-center">
-                        <img src="{% static SITE_LOGO %}" alt="{{ SITE_NAME }}" height="30" class="me-2">
-                        <span>{{ SITE_NAME }}</span>
+                        <img src="{% static SITE_LOGO %}" alt="{{ SITE_NAME }}" height="30" class="brand-logo"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                        <span class="brand-text">{{ SITE_NAME }}</span>
                     </h5>
                     <p class="text-muted">{{ SITE_TAGLINE }}</p>
                     <p class="text-muted small">نسعى لتسهيل رحلة حفظ القرآن الكريم</p>
