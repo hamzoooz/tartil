@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}لوحة التحكم المتقدمة{% endblock %} | دورات القرآن</title>
+    <title>{% block title %}لوحة التحكم المتقدمة{% endblock %} | {{ SITE_NAME }}</title>
+    <link rel="icon" type="image/png" href="{% static SITE_LOGO_SMALL %}">
     
     <!-- Bootstrap RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
@@ -96,6 +97,9 @@
             width: 45px;
             height: 45px;
             border-radius: 10px;
+            object-fit: contain;
+            background: white;
+            padding: 3px;
         }
         
         .sidebar-brand-text {
@@ -719,8 +723,8 @@
     <aside class="dashboard-sidebar {% if settings.sidebar_collapsed %}collapsed{% endif %}" id="sidebar">
         <div class="sidebar-header">
             <a href="{% url 'dashboard:index' %}" class="sidebar-brand">
-                <i class="fas fa-mosque"></i>
-                <span class="sidebar-brand-text">دورات القرآن</span>
+                <img src="{% static SITE_LOGO_SMALL %}" alt="{{ SITE_NAME }}">
+                <span class="sidebar-brand-text">{{ SITE_NAME }}</span>
             </a>
         </div>
         

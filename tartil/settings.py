@@ -80,6 +80,7 @@ TEMPLATES = [
                 'courses.context_processors.notifications_context',
                 'courses.context_processors.courses_context',
                 'dashboard.context_processors.dashboard_notifications',
+                'core.context_processors.site_settings',
             ],
         },
     },
@@ -240,3 +241,9 @@ NOTIFICATIONS_SETTINGS = {
     'BATCH_SIZE': 50,
     'CLEANUP_OLDER_THAN_DAYS': 90,
 }
+
+# Site Settings
+SITE_NAME = 'إدارة الدورات القرآنية'
+SITE_LOGO = 'images/logo3_final.png'
+SITE_LOGO_SMALL = 'images/logo_navbar.png'
+SITE_TAGLINE = 'منصة إدارة الحلقات القرآنية الذكية'

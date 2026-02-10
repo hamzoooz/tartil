@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}دورات القرآن - منصة إدارة الحلقات القرآنية{% endblock %}
+{% block title %}{{ SITE_NAME }} - {{ SITE_TAGLINE }}{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -10,8 +10,8 @@
         <div class="row align-items-center">
             <div class="col-lg-6 text-white mb-5 mb-lg-0">
                 <h1 class="display-4 fw-bold mb-4 fade-in">
-                    <i class="fas fa-quran me-3" style="color: var(--accent-color);"></i>
-                    منصة دورات القرآن
+                    <img src="{% static SITE_LOGO %}" alt="{{ SITE_NAME }}" height="80" class="me-3" style="filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));">
+                    {{ SITE_NAME }}
                 </h1>
                 <p class="lead mb-4 fade-in" style="animation-delay: 0.2s;">
                     منصة تقنية متكاملة لإدارة الحلقات القرآنية عن بعد، تربط الطالب والشيخ والإدارة في بيئة افتراضية تفاعلية
@@ -84,7 +84,7 @@
                 <i class="fas fa-star text-warning me-2"></i>
                 مميزات المنصة
             </h2>
-            <p class="text-muted">اكتشف الميزات الاحترافية التي تجعل دورات القرآن منصة فريدة</p>
+            <p class="text-muted">اكتشف الميزات الاحترافية التي تجعل {{ SITE_NAME }} منصة فريدة</p>
         </div>
 
         <div class="row g-4">
@@ -181,7 +181,7 @@
         <div class="text-center mb-5">
             <h2 class="fw-bold">
                 <i class="fas fa-users text-primary me-2"></i>
-                لمن هذه المنصة؟
+                لمن {{ SITE_NAME }}؟
             </h2>
         </div>
 
@@ -247,7 +247,7 @@
 <section class="py-5" style="background: linear-gradient(135deg, var(--dark-color), #2d3a4f);">
     <div class="container text-center text-white">
         <h2 class="fw-bold mb-4">ابدأ رحلتك مع القرآن الكريم اليوم</h2>
-        <p class="lead mb-4">انضم إلى آلاف الطلاب الذين يحفظون القرآن عبر منصة دورات القرآن</p>
+        <p class="lead mb-4">انضم إلى آلاف الطلاب الذين يحفظون القرآن عبر {{ SITE_NAME }}</p>
         <a href="{% url 'accounts:register' %}" class="btn btn-gold btn-lg">
             <i class="fas fa-rocket me-2"></i> سجل الآن مجاناً
         </a>
